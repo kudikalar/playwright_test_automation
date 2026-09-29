@@ -1,9 +1,14 @@
-/** Shapes of the JSON files under `test-data/`. Every functional value lives there, never in a spec. */
-
+/**
+ * Shapes of the JSON files under `test-data/`.
+ * Every functional value lives there, never in a spec.
+ */
 import type { EmployeeStatus } from './ApiModels';
 import type { UserRole } from './Environment';
 
-/** A credential reference: a spec names a role, the framework resolves the secret. */
+/**
+ * A credential reference: a spec names a role,
+ * and the framework resolves the secret.
+ */
 export interface UserReference {
   readonly role: UserRole;
   readonly description: string;
@@ -28,7 +33,10 @@ export interface LoginTestData {
   };
 }
 
-/** A template; unique runtime values are layered on by `EmployeeDataFactory`. */
+/**
+ * A template; unique runtime values are layered on
+ * by `EmployeeDataFactory`.
+ */
 export interface EmployeeTemplate {
   readonly key: string;
   readonly namePrefix: string;
@@ -65,7 +73,10 @@ export interface EmployeeTestData {
 export interface DashboardTestData {
   readonly heading: string;
   readonly metricLabels: readonly string[];
-  readonly navigationItems: readonly { readonly label: string; readonly path: string }[];
+  readonly navigationItems: readonly {
+    readonly label: string;
+    readonly path: string;
+  }[];
   readonly exportFileName: string;
   readonly resetConfirmationMessage: string;
 }
@@ -93,8 +104,10 @@ export interface ApiTestData {
 export type Gender = 'male' | 'female';
 
 /**
- * A registration that must succeed. The email is built at runtime from `emailPrefix`, because the
- * shop keeps every account forever and a fixed address would only ever register once.
+ * A registration that must succeed.
+ * The email is built at runtime from `emailPrefix`,
+ * because the shop retains accounts and a fixed address
+ * would only register successfully once.
  */
 export interface ValidRegistration {
   readonly gender: Gender;
@@ -104,7 +117,10 @@ export interface ValidRegistration {
   readonly password: string;
 }
 
-/** A registration the form must reject, and the validation messages it must show. */
+/**
+ * A registration the form must reject,
+ * and the validation messages it must show.
+ */
 export interface InvalidRegistrationCase {
   readonly scenario: string;
   readonly gender: Gender;
@@ -112,21 +128,36 @@ export interface InvalidRegistrationCase {
   readonly lastName: string;
   readonly email: string;
   readonly password: string;
+
   /** Defaults to `password` when omitted. */
   readonly confirmPassword?: string;
+
   readonly expectedErrors: readonly string[];
 }
 
-/** `test-data/demoshop/register.json` — only meaningful under TEST_ENV=demoshop. */
+export interface InvalidEmail {
+  readonly scenario: string;
+  readonly email: string;
+  readonly expectedErrors: readonly string[];
+}
+
+/**
+ * `test-data/demoshop/register.json`
+ * Only meaningful under TEST_ENV=demoshop.
+ */
 export interface RegisterTestData {
   readonly validUser: ValidRegistration;
   readonly invalidScenarios: readonly InvalidRegistrationCase[];
+  readonly invalidEmails: readonly InvalidEmail[];
   readonly ui: {
     readonly successMessage: string;
   };
 }
 
-/** Registry of every dataset name the framework knows, keyed to its parsed type. */
+/**
+ * Registry of every dataset name the framework knows,
+ * keyed to its parsed type.
+ */
 export interface TestDataRegistry {
   readonly login: LoginTestData;
   readonly employees: EmployeeTestData;
