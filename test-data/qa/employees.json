@@ -1,0 +1,11 @@
+{
+  "pagination": {
+    "defaultPageSize": 25,
+    "smallPageSize": 10
+  },
+  "search": {
+    "knownSeededEmail": "kiran.rao@prakura.io",
+    "knownSeededName": "Kiran Rao",
+    "noResultsTerm": "zzz-no-such-employee-zzz"
+  }
+}

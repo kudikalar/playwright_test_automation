@@ -1,0 +1,51 @@
+# ---- dependencies ----
+node_modules/
+.pnp/
+.pnp.js
+
+# ---- secrets (NEVER commit) ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+secrets.json
+
+# ---- authenticated storage state (contains live session tokens) ----
+storage/auth/*.json
+storage/auth/*
+!storage/auth/.gitkeep
+
+# ---- execution artifacts ----
+# Directory skeletons stay in git (.gitkeep); everything generated inside them does not.
+test-results/
+reports/playwright/
+reports/extent/
+reports/screenshots/
+reports/videos/
+reports/traces/
+reports/downloads/
+reports/json/
+reports/junit/
+reports/sauce/
+reports/blob/
+reports/run-context.json
+logs/*
+!logs/.gitkeep
+
+# ---- playwright ----
+playwright-report/
+playwright/.cache/
+
+# ---- os / editor ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# ---- typescript ----
+*.tsbuildinfo
+dist/

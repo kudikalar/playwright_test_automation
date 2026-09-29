@@ -1,0 +1,30 @@
+# Excluded from the bundle saucectl uploads to Sauce Labs.
+#
+# saucectl zips the whole of `rootDir` (./) and ships it to a Sauce VM. Without this file that
+# archive would carry the local .env and the storage/auth session files — real credentials and
+# live tokens — off this machine. Treat every addition here as a security decision.
+
+# ---- secrets: never leave the machine ----
+.env
+.env.*
+!.env.example
+storage/auth
+*.pem
+*.key
+*.p12
+
+# ---- version control and dependencies (saucectl installs its own) ----
+.git
+.github
+node_modules
+
+# ---- local run artifacts: large, and regenerated on the VM anyway ----
+reports
+logs
+test-results
+playwright-report
+
+# ---- editor / OS noise ----
+.DS_Store
+.idea
+.vscode

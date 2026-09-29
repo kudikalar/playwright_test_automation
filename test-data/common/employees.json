@@ -1,0 +1,71 @@
+{
+  "templates": [
+    {
+      "key": "engineer",
+      "namePrefix": "Auto Engineer",
+      "emailPrefix": "engineer",
+      "department": "Engineering",
+      "designation": "Automation Engineer",
+      "salary": 1250000,
+      "status": "ACTIVE"
+    },
+    {
+      "key": "qaLead",
+      "namePrefix": "Auto QA Lead",
+      "emailPrefix": "qalead",
+      "department": "Quality Assurance",
+      "designation": "QA Lead",
+      "salary": 1450000,
+      "status": "ACTIVE"
+    },
+    {
+      "key": "financeAnalyst",
+      "namePrefix": "Auto Analyst",
+      "emailPrefix": "analyst",
+      "department": "Finance",
+      "designation": "Financial Analyst",
+      "salary": 980000,
+      "status": "INACTIVE"
+    }
+  ],
+  "departments": ["Engineering", "Quality Assurance", "Human Resources", "Finance", "Sales"],
+  "validation": [
+    {
+      "scenario": "Missing mandatory name",
+      "overrides": { "name": "" },
+      "expectedStatus": 422,
+      "expectedErrorCode": "VALIDATION_ERROR",
+      "expectedField": "name"
+    },
+    {
+      "scenario": "Malformed email address",
+      "overrides": { "email": "not-an-email" },
+      "expectedStatus": 422,
+      "expectedErrorCode": "VALIDATION_ERROR",
+      "expectedField": "email"
+    },
+    {
+      "scenario": "Department outside the allowed list",
+      "overrides": { "department": "Time Travel" },
+      "expectedStatus": 422,
+      "expectedErrorCode": "VALIDATION_ERROR",
+      "expectedField": "department"
+    },
+    {
+      "scenario": "Negative salary",
+      "overrides": { "salary": -1 },
+      "expectedStatus": 422,
+      "expectedErrorCode": "VALIDATION_ERROR",
+      "expectedField": "salary"
+    }
+  ],
+  "search": {
+    "knownSeededEmail": "kiran.rao@prakura.io",
+    "knownSeededName": "Kiran Rao",
+    "noResultsTerm": "zzz-no-such-employee-zzz"
+  },
+  "pagination": {
+    "defaultPageSize": 10,
+    "smallPageSize": 5
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "qa",
+  "displayName": "Quality Assurance",
+  "allowDestructiveTests": true,
+  "allowInsecureDefaults": false,
+  "ui": {
+    "baseUrl": "https://qa.workforce.example.com",
+    "loginPath": "/login",
+    "dashboardPath": "/dashboard"
+  },
+  "api": {
+    "baseUrl": "https://qa-api.workforce.example.com/api/v1",
+    "apiKeyEnv": "API_KEY"
+  },
+  "timeouts": {
+    "test": 90000,
+    "action": 20000,
+    "navigation": 45000,
+    "expect": 15000,
+    "api": 30000
+  },
+  "retries": {
+    "local": 0,
+    "ci": 2,
+    "apiMaxAttempts": 3,
+    "apiBackoffMs": 500
+  },
+  "features": {
+    "employeeManagement": true,
+    "employeeDeletion": true,
+    "csvExport": true,
+    "visualRegression": false
+  },
+  "roles": {
+    "ADMIN": { "usernameEnv": "ADMIN_USERNAME", "passwordEnv": "ADMIN_PASSWORD" },
+    "MANAGER": { "usernameEnv": "MANAGER_USERNAME", "passwordEnv": "MANAGER_PASSWORD" },
+    "EMPLOYEE": { "usernameEnv": "EMPLOYEE_USERNAME", "passwordEnv": "EMPLOYEE_PASSWORD" }
+  }
+}

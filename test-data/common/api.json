@@ -1,0 +1,35 @@
+{
+  "endpoints": {
+    "health": "/health",
+    "login": "/auth/login",
+    "me": "/auth/me",
+    "employees": "/employees"
+  },
+  "performance": {
+    "maxResponseTimeMs": 2000,
+    "maxListResponseTimeMs": 3000
+  },
+  "negative": [
+    {
+      "scenario": "Employee list without a token",
+      "path": "/employees",
+      "method": "GET",
+      "expectedStatus": 401,
+      "expectedErrorCode": "UNAUTHORIZED"
+    },
+    {
+      "scenario": "Unknown employee id",
+      "path": "/employees/emp-does-not-exist",
+      "method": "GET",
+      "expectedStatus": 404,
+      "expectedErrorCode": "NOT_FOUND"
+    },
+    {
+      "scenario": "Undefined route",
+      "path": "/not-a-real-route",
+      "method": "GET",
+      "expectedStatus": 404,
+      "expectedErrorCode": "ROUTE_NOT_FOUND"
+    }
+  ]
+}

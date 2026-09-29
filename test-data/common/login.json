@@ -1,0 +1,50 @@
+{
+  "validUsers": [
+    { "role": "ADMIN", "description": "Workforce administrator with full access" },
+    { "role": "MANAGER", "description": "Department manager who may delete records" },
+    { "role": "EMPLOYEE", "description": "Standard employee with read access" }
+  ],
+  "invalidScenarios": [
+    {
+      "scenario": "Unknown email address",
+      "username": "not.a.user@automation.test",
+      "password": "Whatever@12345",
+      "expectedError": "Invalid credentials",
+      "tags": ["@negative", "@regression"]
+    },
+    {
+      "scenario": "Correct email with wrong password",
+      "username": "admin@prakura.io",
+      "password": "WrongPassword@123",
+      "expectedError": "Invalid credentials",
+      "tags": ["@negative", "@critical"]
+    },
+    {
+      "scenario": "Empty password",
+      "username": "admin@prakura.io",
+      "password": "",
+      "expectedError": "Email and password are required",
+      "tags": ["@negative"]
+    },
+    {
+      "scenario": "Empty email",
+      "username": "",
+      "password": "Admin@12345",
+      "expectedError": "Email and password are required",
+      "tags": ["@negative"]
+    },
+    {
+      "scenario": "Empty email",
+      "username": "test.com",
+      "password": "sdfkjh",
+      "expectedError": "Invalid credentials",
+      "tags": ["@negative"]
+    }
+  ],
+  "ui": {
+    "pageTitle": "Sign in",
+    "submitLabel": "Sign in",
+    "invalidCredentialsMessage": "Invalid credentials",
+    "missingFieldsMessage": "Email and password are required"
+  }
+}

@@ -1,0 +1,61 @@
+name: Smoke
+
+# The fastest confidence signal: runs on every push and after each deployment event.
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, qa, uat, prod]
+        default: qa
+
+concurrency:
+  group: smoke-${{ github.ref }}-${{ inputs.environment || 'dev' }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  TEST_ENV: ${{ inputs.environment || 'dev' }}
+
+jobs:
+  smoke:
+    name: Smoke (${{ inputs.environment || 'dev' }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run smoke suite
+        run: npm run test:smoke
+        env:
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
+          MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
+          EMPLOYEE_USERNAME: ${{ secrets.EMPLOYEE_USERNAME }}
+          EMPLOYEE_PASSWORD: ${{ secrets.EMPLOYEE_PASSWORD }}
+          API_KEY: ${{ secrets.API_KEY }}
+      - name: Upload report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-report-${{ inputs.environment || 'dev' }}
+          path: reports/extent
+          retention-days: 14
+      - name: Upload diagnostics on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-diagnostics
+          path: |
+            test-results
+            logs
+          retention-days: 7

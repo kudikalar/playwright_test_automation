@@ -1,0 +1,158 @@
+name: Playwright CI
+
+# Pull-request gate: static checks, then the fast suites. Anything slower runs on main.
+on:
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, qa, uat]
+        default: qa
+      grep:
+        description: Tag filter (for example @smoke)
+        type: string
+        default: "@smoke"
+
+concurrency:
+  group: playwright-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TEST_ENV: ${{ inputs.environment || 'dev' }}
+  CI: "true"
+  NODE_VERSION: "22"
+
+jobs:
+  static-checks:
+    name: Lint and types
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: TypeScript
+        run: npm run typecheck
+      - name: ESLint
+        run: npm run lint
+      - name: Prettier
+        run: npm run format:check
+
+  api-tests:
+    name: API suite
+    needs: static-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Run API tests
+        run: npx playwright test --project=api
+        env:
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
+          MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
+          EMPLOYEE_USERNAME: ${{ secrets.EMPLOYEE_USERNAME }}
+          EMPLOYEE_PASSWORD: ${{ secrets.EMPLOYEE_PASSWORD }}
+          API_KEY: ${{ secrets.API_KEY }}
+      - name: Upload API reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-api
+          path: |
+            reports/extent
+            reports/junit
+            reports/json
+          retention-days: 14
+
+  ui-tests:
+    name: UI (${{ matrix.project }})
+    needs: static-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - name: Install browser
+        run: npx playwright install --with-deps ${{ matrix.project }}
+      - name: Run UI tests
+        run: npx playwright test --project=${{ matrix.project }} --grep "${{ inputs.grep || '@smoke|@sanity' }}"
+        env:
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
+          MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
+          EMPLOYEE_USERNAME: ${{ secrets.EMPLOYEE_USERNAME }}
+          EMPLOYEE_PASSWORD: ${{ secrets.EMPLOYEE_PASSWORD }}
+          API_KEY: ${{ secrets.API_KEY }}
+      - name: Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-ui-${{ matrix.project }}
+          path: |
+            reports/extent
+            reports/playwright
+            reports/junit
+          retention-days: 14
+      - name: Upload failure diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics-${{ matrix.project }}
+          path: |
+            test-results/**/*.png
+            test-results/**/*.webm
+            test-results/**/trace.zip
+            logs
+          retention-days: 7
+
+  publish-summary:
+    name: Publish summary
+    needs: [api-tests, ui-tests]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      # No merge-multiple: every artifact carries extent/latest.json at the same relative path, so
+      # flattening them into one directory leaves only the last one downloaded and the summary
+      # reports a single unlabelled job. The per-artifact folders are what make it a table.
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: reports-*
+          path: downloaded
+      - name: Write job summary
+        shell: bash
+        run: |
+          echo "## Playwright results" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Job | Total | Pass | Fail | Flaky | Skip | Pass rate |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | ---: | ---: | ---: | ---: | ---: | ---: |" >> "$GITHUB_STEP_SUMMARY"
+          found=0
+          while IFS= read -r file; do
+            found=1
+            job=$(echo "$file" | cut -d/ -f2)
+            node -e "
+              const s = require('./$file').summary;
+              console.log('| $job | ' + [s.total, s.passed, s.failed, s.flaky, s.skipped, s.passRate + '%'].join(' | ') + ' |');
+            " >> "$GITHUB_STEP_SUMMARY"
+          done < <(find downloaded -name 'latest.json' 2>/dev/null | sort)
+          [ "$found" -eq 1 ] || echo "No Extent summary found" >> "$GITHUB_STEP_SUMMARY"

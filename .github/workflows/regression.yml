@@ -1,0 +1,118 @@
+name: Regression
+
+# Full regression: nightly on a schedule, and on demand for a chosen environment.
+on:
+  schedule:
+    - cron: "0 20 * * 1-5" # 01:30 IST, weeknights
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [dev, qa, uat]
+        default: qa
+      projects:
+        description: Playwright projects (space separated)
+        type: string
+        default: "chromium firefox webkit"
+
+concurrency:
+  group: regression-${{ inputs.environment || 'qa' }}
+  cancel-in-progress: false
+
+env:
+  CI: "true"
+  TEST_ENV: ${{ inputs.environment || 'qa' }}
+  RETRIES: "2"
+
+jobs:
+  api-regression:
+    name: API regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Run API regression
+        run: npx playwright test --project=api
+        env:
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
+          MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
+          EMPLOYEE_USERNAME: ${{ secrets.EMPLOYEE_USERNAME }}
+          EMPLOYEE_PASSWORD: ${{ secrets.EMPLOYEE_PASSWORD }}
+          API_KEY: ${{ secrets.API_KEY }}
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: regression-api
+          path: reports/
+          retention-days: 30
+
+  ui-regression:
+    name: UI regression (${{ matrix.project }} shard ${{ matrix.shard }}/2)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit, mobile-chrome, tablet-ipad]
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - name: Run UI regression shard
+        run: npx playwright test --project=${{ matrix.project }} --shard=${{ matrix.shard }}/2
+        env:
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          MANAGER_USERNAME: ${{ secrets.MANAGER_USERNAME }}
+          MANAGER_PASSWORD: ${{ secrets.MANAGER_PASSWORD }}
+          EMPLOYEE_USERNAME: ${{ secrets.EMPLOYEE_USERNAME }}
+          EMPLOYEE_PASSWORD: ${{ secrets.EMPLOYEE_PASSWORD }}
+          API_KEY: ${{ secrets.API_KEY }}
+      - name: Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-${{ matrix.project }}-${{ matrix.shard }}
+          path: |
+            reports/extent
+            reports/junit
+          retention-days: 30
+      - name: Upload diagnostics on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-diagnostics-${{ matrix.project }}-${{ matrix.shard }}
+          path: |
+            test-results/**/*.png
+            test-results/**/*.webm
+            test-results/**/trace.zip
+            logs
+          retention-days: 14
+
+  notify:
+    name: Report outcome
+    needs: [api-regression, ui-regression]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summarise
+        run: |
+          echo "## Nightly regression — ${{ inputs.environment || 'qa' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- API: ${{ needs.api-regression.result }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- UI:  ${{ needs.ui-regression.result }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Extent reports are attached as build artifacts." >> "$GITHUB_STEP_SUMMARY"
+      # Extension point: post the same summary to Slack/Teams with a webhook secret.

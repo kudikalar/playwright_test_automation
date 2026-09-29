@@ -1,0 +1,55 @@
+{
+  "name": "dev",
+  "displayName": "Development (local sandbox)",
+  "allowDestructiveTests": true,
+  "allowInsecureDefaults": true,
+  "ui": {
+    "baseUrl": "http://127.0.0.1:4321",
+    "loginPath": "/login",
+    "dashboardPath": "/dashboard"
+  },
+  "api": {
+    "baseUrl": "http://127.0.0.1:4321/api/v1",
+    "apiKeyEnv": "API_KEY",
+    "sandboxApiKey": "local-dev-api-key"
+  },
+  "timeouts": {
+    "test": 60000,
+    "action": 15000,
+    "navigation": 30000,
+    "expect": 10000,
+    "api": 20000
+  },
+  "retries": {
+    "local": 0,
+    "ci": 1,
+    "apiMaxAttempts": 2,
+    "apiBackoffMs": 250
+  },
+  "features": {
+    "employeeManagement": true,
+    "employeeDeletion": true,
+    "csvExport": true,
+    "visualRegression": true
+  },
+  "roles": {
+    "ADMIN": {
+      "usernameEnv": "ADMIN_USERNAME",
+      "passwordEnv": "ADMIN_PASSWORD",
+      "sandboxUsername": "admin@prakura.io",
+      "sandboxPassword": "Admin@12345"
+    },
+    "MANAGER": {
+      "usernameEnv": "MANAGER_USERNAME",
+      "passwordEnv": "MANAGER_PASSWORD",
+      "sandboxUsername": "manager@prakura.io",
+      "sandboxPassword": "Manager@12345"
+    },
+    "EMPLOYEE": {
+      "usernameEnv": "EMPLOYEE_USERNAME",
+      "passwordEnv": "EMPLOYEE_PASSWORD",
+      "sandboxUsername": "employee@prakura.io",
+      "sandboxPassword": "Employee@12345"
+    }
+  }
+}

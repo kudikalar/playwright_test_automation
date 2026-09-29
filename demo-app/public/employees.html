@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Employees · Prakura Workforce</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <header class="app-header">
+      <button class="btn btn-sm" type="button" data-testid="menu-toggle" aria-label="Toggle navigation">☰</button>
+      <div class="brand" style="margin: 0"><span class="brand-dot" aria-hidden="true"></span> Prakura Workforce</div>
+      <div class="spacer"></div>
+      <span data-testid="current-user-name"></span>
+      <span class="badge" data-testid="current-user-role"></span>
+      <button class="btn btn-sm" type="button" data-testid="logout-button">Log out</button>
+    </header>
+
+    <div class="layout">
+      <nav class="sidebar" aria-label="Primary">
+        <a href="/dashboard" data-nav="dashboard">Dashboard</a>
+        <a href="/employees" data-nav="employees">Employees</a>
+        <a href="/profile" data-nav="profile">Profile</a>
+      </nav>
+
+      <main>
+        <h1>Employees</h1>
+        <p class="page-sub">Create, search and maintain workforce records.</p>
+
+        <section class="panel" aria-label="Employee filters">
+          <div class="row">
+            <div style="flex: 1; min-width: 220px">
+              <label for="searchInput">Search employees</label>
+              <input id="searchInput" type="search" placeholder="Search by name, email or role" data-testid="employee-search" />
+            </div>
+            <div style="min-width: 190px">
+              <label for="departmentFilter">Department</label>
+              <select id="departmentFilter" data-testid="department-filter">
+                <option value="">All departments</option>
+              </select>
+            </div>
+            <button class="btn" type="button" data-testid="clear-filters">Clear</button>
+            <button class="btn btn-primary" type="button" data-testid="add-employee">Add employee</button>
+          </div>
+        </section>
+
+        <div class="table-wrap">
+          <table data-testid="employee-table">
+            <caption>Employee directory</caption>
+            <thead>
+              <tr>
+                <th scope="col"><button type="button" data-sort="name">Name</button></th>
+                <th scope="col"><button type="button" data-sort="email">Email</button></th>
+                <th scope="col"><button type="button" data-sort="department">Department</button></th>
+                <th scope="col"><button type="button" data-sort="designation">Designation</button></th>
+                <th scope="col"><button type="button" data-sort="salary">Salary</button></th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody data-testid="employee-table-body"></tbody>
+          </table>
+          <div class="empty-state" data-testid="employee-empty-state" hidden>No employees match your filters</div>
+          <div class="pagination">
+            <span data-testid="pagination-summary">–</span>
+            <div class="spacer"></div>
+            <label for="pageSize" class="visually-hidden">Rows per page</label>
+            <select id="pageSize" data-testid="page-size" style="width: auto">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+            </select>
+            <button class="btn btn-sm" type="button" data-testid="pagination-previous">Previous</button>
+            <button class="btn btn-sm" type="button" data-testid="pagination-next">Next</button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="backdrop" id="employeeModal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="employeeModalTitle" data-testid="employee-modal">
+        <header>
+          <h2 id="employeeModalTitle">Add employee</h2>
+          <button class="btn btn-sm" type="button" data-testid="modal-close" aria-label="Close dialog">✕</button>
+        </header>
+        <div class="alert alert-error" role="alert" data-testid="modal-error" hidden></div>
+        <form id="employeeForm" novalidate>
+          <div class="field">
+            <label for="employeeName">Full name</label>
+            <input id="employeeName" name="name" type="text" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="employeeEmail">Work email</label>
+            <input id="employeeEmail" name="email" type="email" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="employeeDepartment">Department</label>
+            <select id="employeeDepartment" name="department"><option value="">Select a department</option></select>
+          </div>
+          <div class="field">
+            <label for="employeeDesignation">Designation</label>
+            <input id="employeeDesignation" name="designation" type="text" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="employeeSalary">Annual salary</label>
+            <input id="employeeSalary" name="salary" type="number" min="0" step="1000" />
+          </div>
+          <div class="field datepicker" data-testid="joining-date-picker">
+            <label for="employeeJoiningDate">Joining date</label>
+            <div class="row" style="flex-wrap: nowrap">
+              <input id="employeeJoiningDate" name="joiningDate" type="text" readonly data-testid="date-input" placeholder="YYYY-MM-DD" />
+              <button class="btn btn-sm" type="button" data-testid="date-picker-trigger" aria-expanded="false" aria-label="Open date picker">📅</button>
+            </div>
+            <div class="datepicker-pop" data-testid="date-picker-popup" hidden>
+              <div class="datepicker-head">
+                <label for="dpMonth" class="visually-hidden">Month</label>
+                <select id="dpMonth" data-testid="date-picker-month"></select>
+                <label for="dpYear" class="visually-hidden">Year</label>
+                <select id="dpYear" data-testid="date-picker-year"></select>
+              </div>
+              <div class="datepicker-grid" data-testid="date-picker-grid"></div>
+            </div>
+          </div>
+          <div class="field checkbox">
+            <input id="employeeActive" name="active" type="checkbox" checked />
+            <label for="employeeActive">Employee is active</label>
+          </div>
+          <footer>
+            <button class="btn" type="button" data-testid="modal-cancel">Cancel</button>
+            <button class="btn btn-primary" type="submit" data-testid="modal-save">Save employee</button>
+          </footer>
+        </form>
+      </div>
+    </div>
+
+    <div class="backdrop" id="confirmModal" hidden>
+      <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" data-testid="confirm-modal" style="max-width: 420px">
+        <header><h2 id="confirmTitle">Delete employee</h2></header>
+        <p data-testid="confirm-message">Are you sure?</p>
+        <footer>
+          <button class="btn" type="button" data-testid="confirm-cancel">Cancel</button>
+          <button class="btn btn-danger" type="button" data-testid="confirm-accept">Delete</button>
+        </footer>
+      </div>
+    </div>
+
+    <div id="toastRegion"></div>
+
+    <script type="module">
+      import { api, formatCurrency, initDatePicker, mountShell, requireAuth, toast } from '/app.js';
+
+      if (requireAuth()) {
+        mountShell('employees');
+
+        const state = { search: '', department: '', page: 1, pageSize: 10, sortBy: 'name', sortOrder: 'asc', editingId: null };
+        const els = {
+          body: document.querySelector('[data-testid="employee-table-body"]'),
+          empty: document.querySelector('[data-testid="employee-empty-state"]'),
+          summary: document.querySelector('[data-testid="pagination-summary"]'),
+          prev: document.querySelector('[data-testid="pagination-previous"]'),
+          next: document.querySelector('[data-testid="pagination-next"]'),
+          search: document.querySelector('[data-testid="employee-search"]'),
+          department: document.querySelector('[data-testid="department-filter"]'),
+          modal: document.getElementById('employeeModal'),
+          modalTitle: document.getElementById('employeeModalTitle'),
+          modalError: document.querySelector('[data-testid="modal-error"]'),
+          form: document.getElementById('employeeForm'),
+          confirm: document.getElementById('confirmModal'),
+          confirmMessage: document.querySelector('[data-testid="confirm-message"]'),
+        };
+
+        const departments = await api('/departments');
+        const options = departments.ok ? departments.data : [];
+        els.department.insertAdjacentHTML('beforeend', options.map((d) => `<option value="${d}">${d}</option>`).join(''));
+        document.getElementById('employeeDepartment').insertAdjacentHTML('beforeend', options.map((d) => `<option value="${d}">${d}</option>`).join(''));
+
+        const datePicker = initDatePicker(document.querySelector('[data-testid="joining-date-picker"]'));
+
+        async function load() {
+          const query = new URLSearchParams({
+            search: state.search,
+            department: state.department,
+            page: String(state.page),
+            pageSize: String(state.pageSize),
+            sortBy: state.sortBy,
+            sortOrder: state.sortOrder,
+          });
+          const response = await api(`/employees?${query.toString()}`);
+          if (!response.ok) {
+            toast('Unable to load employees', 'error');
+            return;
+          }
+          const rows = response.data;
+          els.body.innerHTML = rows
+            .map(
+              (r) => `<tr data-testid="employee-row" data-employee-id="${r.id}" data-employee-email="${r.email}">
+                <td>${r.name}</td><td>${r.email}</td><td>${r.department}</td><td>${r.designation}</td>
+                <td>${formatCurrency(r.salary)}</td>
+                <td><span class="badge" data-status="${r.status}">${r.status}</span></td>
+                <td>
+                  <button class="btn btn-sm" type="button" data-action="edit" aria-label="Edit ${r.name}">Edit</button>
+                  <button class="btn btn-sm btn-danger" type="button" data-action="delete" aria-label="Delete ${r.name}">Delete</button>
+                </td>
+              </tr>`,
+            )
+            .join('');
+          els.empty.hidden = rows.length > 0;
+          const { page, totalPages, total } = response.meta;
+          els.summary.textContent = `Page ${page} of ${totalPages} · ${total} employees`;
+          els.prev.disabled = page <= 1;
+          els.next.disabled = page >= totalPages;
+        }
+
+        function openModal(employee) {
+          state.editingId = employee?.id ?? null;
+          els.modalTitle.textContent = employee ? 'Edit employee' : 'Add employee';
+          els.modalError.hidden = true;
+          els.form.reset();
+          if (employee) {
+            els.form.name.value = employee.name;
+            els.form.email.value = employee.email;
+            els.form.department.value = employee.department;
+            els.form.designation.value = employee.designation;
+            els.form.salary.value = employee.salary;
+            datePicker.setValue(employee.joiningDate ?? '');
+            els.form.joiningDate.value = employee.joiningDate ?? '';
+            els.form.active.checked = employee.status === 'ACTIVE';
+          }
+          els.modal.hidden = false;
+          els.form.name.focus();
+        }
+        const closeModal = () => { els.modal.hidden = true; state.editingId = null; };
+
+        document.querySelector('[data-testid="add-employee"]').addEventListener('click', () => openModal(null));
+        document.querySelector('[data-testid="modal-close"]').addEventListener('click', closeModal);
+        document.querySelector('[data-testid="modal-cancel"]').addEventListener('click', closeModal);
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && !els.modal.hidden) closeModal();
+        });
+
+        els.form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          els.modalError.hidden = true;
+          const payload = {
+            name: els.form.name.value.trim(),
+            email: els.form.email.value.trim(),
+            department: els.form.department.value,
+            designation: els.form.designation.value.trim(),
+            salary: Number(els.form.salary.value || 0),
+            joiningDate: els.form.joiningDate.value || undefined,
+            status: els.form.active.checked ? 'ACTIVE' : 'INACTIVE',
+          };
+          const missing = ['name', 'email', 'department', 'designation'].filter((f) => !payload[f]);
+          if (missing.length) {
+            els.modalError.textContent = `Please complete: ${missing.join(', ')}`;
+            els.modalError.hidden = false;
+            return;
+          }
+          const isEdit = Boolean(state.editingId);
+          const response = isEdit
+            ? await api(`/employees/${state.editingId}`, { method: 'PUT', body: payload })
+            : await api('/employees', { method: 'POST', body: payload });
+
+          if (!response.ok) {
+            els.modalError.textContent = response.error?.message ?? 'Unable to save employee';
+            els.modalError.hidden = false;
+            toast('Save failed', 'error');
+            return;
+          }
+          closeModal();
+          toast(isEdit ? 'Employee updated' : 'Employee created', 'success');
+          await load();
+        });
+
+        els.body.addEventListener('click', async (event) => {
+          const button = event.target.closest('button[data-action]');
+          if (!button) return;
+          const id = button.closest('tr').dataset.employeeId;
+          if (button.dataset.action === 'edit') {
+            const record = await api(`/employees/${id}`);
+            if (record.ok) openModal(record.data);
+            return;
+          }
+          const row = button.closest('tr');
+          els.confirmMessage.textContent = `Delete ${row.children[0].textContent}? This cannot be undone.`;
+          els.confirm.hidden = false;
+          els.confirm.dataset.employeeId = id;
+        });
+
+        document.querySelector('[data-testid="confirm-cancel"]').addEventListener('click', () => {
+          els.confirm.hidden = true;
+        });
+        document.querySelector('[data-testid="confirm-accept"]').addEventListener('click', async () => {
+          const id = els.confirm.dataset.employeeId;
+          els.confirm.hidden = true;
+          const response = await api(`/employees/${id}`, { method: 'DELETE' });
+          toast(response.ok ? 'Employee deleted' : (response.error?.message ?? 'Delete failed'), response.ok ? 'success' : 'error');
+          await load();
+        });
+
+        let searchTimer;
+        els.search.addEventListener('input', (event) => {
+          clearTimeout(searchTimer);
+          searchTimer = setTimeout(() => {
+            state.search = event.target.value.trim();
+            state.page = 1;
+            void load();
+          }, 200);
+        });
+        els.department.addEventListener('change', (event) => {
+          state.department = event.target.value;
+          state.page = 1;
+          void load();
+        });
+        document.querySelector('[data-testid="clear-filters"]').addEventListener('click', () => {
+          els.search.value = '';
+          els.department.value = '';
+          Object.assign(state, { search: '', department: '', page: 1 });
+          void load();
+        });
+        document.querySelector('[data-testid="page-size"]').addEventListener('change', (event) => {
+          state.pageSize = Number(event.target.value);
+          state.page = 1;
+          void load();
+        });
+        els.prev.addEventListener('click', () => { state.page = Math.max(1, state.page - 1); void load(); });
+        els.next.addEventListener('click', () => { state.page += 1; void load(); });
+        document.querySelectorAll('th button[data-sort]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const column = button.dataset.sort;
+            state.sortOrder = state.sortBy === column && state.sortOrder === 'asc' ? 'desc' : 'asc';
+            state.sortBy = column;
+            button.closest('tr').querySelectorAll('th').forEach((th) => th.removeAttribute('aria-sort'));
+            button.closest('th').setAttribute('aria-sort', state.sortOrder === 'asc' ? 'ascending' : 'descending');
+            void load();
+          });
+        });
+
+        await load();
+      }
+    </script>
+  </body>
+</html>

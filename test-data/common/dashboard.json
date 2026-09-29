@@ -1,0 +1,11 @@
+{
+  "heading": "Dashboard",
+  "metricLabels": ["Total employees", "Departments", "Active", "Average salary"],
+  "navigationItems": [
+    { "label": "Dashboard", "path": "/dashboard" },
+    { "label": "Employees", "path": "/employees" },
+    { "label": "Profile", "path": "/profile" }
+  ],
+  "exportFileName": "employees-export.csv",
+  "resetConfirmationMessage": "Reset the workspace? Unsaved changes will be lost."
+}

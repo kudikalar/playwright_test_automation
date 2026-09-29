@@ -1,0 +1,143 @@
+# =============================================================================
+# PRAKURA PLAYWRIGHT ENTERPRISE AUTOMATION PLATFORM
+# Sauce Labs - Demoshop Chrome Cloud Execution
+# =============================================================================
+
+apiVersion: "v1alpha"
+kind: "playwright"
+
+# =============================================================================
+# PROJECT BUNDLE
+# =============================================================================
+
+rootDir: "./"
+
+# =============================================================================
+# SAUCE LABS
+# =============================================================================
+
+sauce:
+  region: "eu-central-1"
+
+  # One cloud VM for this execution.
+  concurrency: 1
+
+  # Do not automatically retry the entire Sauce job.
+  retries: 0
+
+  metadata:
+    tags:
+      - "prakura"
+      - "playwright"
+      - "typescript"
+      - "enterprise"
+      - "demoshop"
+      - "chrome"
+
+showConsoleLog: true
+
+# =============================================================================
+# PLAYWRIGHT RUNTIME
+# =============================================================================
+
+playwright:
+  version: "1.61.1"
+  configFile: "playwright.config.ts"
+
+# =============================================================================
+# ENVIRONMENT
+# =============================================================================
+
+env:
+  TEST_ENV: "demoshop"
+  CI: "true"
+  SAUCE: "true"
+
+# =============================================================================
+# NPM
+# =============================================================================
+#
+# package-lock.json must exist.
+#
+# package.json should contain the exact Playwright version:
+#
+# "@playwright/test": "1.61.1"
+#
+# Do not specify additional npm packages here unless they are genuinely
+# required by Sauce and are not already represented in package-lock.json.
+# =============================================================================
+
+npm:
+  usePackageLock: true
+
+# =============================================================================
+# DEMOSHOP - CHROME / WINDOWS 11
+# =============================================================================
+
+suites:
+
+  - name: "Demoshop Chrome - Windows 11"
+
+    platformName: "Windows 11"
+
+    screenResolution: "1440x900"
+
+    testMatch:
+      - "tests/demoshop/.*\\.spec\\.ts$"
+
+    timeout: "30m"
+
+    env:
+      TEST_ENV: "demoshop"
+
+    params:
+
+      # Apply the "demoshop" project from playwright.config.ts.
+      project: "demoshop"
+
+      # IMPORTANT:
+      # "chrome" means Chrome installed on the Sauce VM.
+      # "chromium" means Playwright's bundled Chromium.
+      browserName: "chrome"
+
+      # Sauce controls the browser launch.
+      headless: true
+
+      # Single worker for stable DemoShop execution.
+      workers: 1
+
+# =============================================================================
+# ARTIFACTS
+# =============================================================================
+
+artifacts:
+  cleanup: true
+
+  download:
+    # Download artifacts only when the suite fails.
+    # This keeps successful executions fast.
+    when: "fail"
+
+    match:
+      - "*.png"
+      - "*.jpg"
+      - "*.jpeg"
+      - "*.webm"
+      - "*.mp4"
+      - "*.log"
+      - "*.xml"
+
+    directory: "./reports/sauce/"
+
+# =============================================================================
+# SAUCE REPORTING
+# =============================================================================
+
+reporters:
+
+  junit:
+    enabled: true
+    filename: "sauce-junit.xml"
+
+  spotlight:
+    enabled: true

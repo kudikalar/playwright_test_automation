@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard · Prakura Workforce</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <header class="app-header">
+      <button class="btn btn-sm" type="button" data-testid="menu-toggle" aria-label="Toggle navigation">☰</button>
+      <div class="brand" style="margin: 0"><span class="brand-dot" aria-hidden="true"></span> Prakura Workforce</div>
+      <div class="spacer"></div>
+      <span data-testid="current-user-name"></span>
+      <span class="badge" data-testid="current-user-role"></span>
+      <button class="btn btn-sm" type="button" data-testid="logout-button">Log out</button>
+    </header>
+
+    <div class="layout">
+      <nav class="sidebar" aria-label="Primary">
+        <a href="/dashboard" data-nav="dashboard">Dashboard</a>
+        <a href="/employees" data-nav="employees">Employees</a>
+        <a href="/profile" data-nav="profile">Profile</a>
+      </nav>
+
+      <main>
+        <h1>Dashboard</h1>
+        <p class="page-sub">Workforce overview for your organisation.</p>
+
+        <section class="kpi-grid" aria-label="Key metrics">
+          <div class="card"><h2>Total employees</h2><p class="metric" data-testid="metric-total">–</p></div>
+          <div class="card"><h2>Departments</h2><p class="metric" data-testid="metric-departments">–</p></div>
+          <div class="card"><h2>Active</h2><p class="metric" data-testid="metric-active">–</p></div>
+          <div class="card"><h2>Average salary</h2><p class="metric" data-testid="metric-avg-salary">–</p></div>
+        </section>
+
+        <section class="panel" aria-labelledby="onboardingHeading">
+          <h2 id="onboardingHeading" style="font-size: 15px; margin-top: 0">Onboarding documents</h2>
+          <div class="field">
+            <label for="documentUpload">Upload signed documents</label>
+            <input id="documentUpload" type="file" multiple data-testid="document-upload" />
+          </div>
+          <p data-testid="upload-summary" aria-live="polite">No documents selected</p>
+          <div class="row">
+            <button class="btn" type="button" data-testid="export-button">Export employees CSV</button>
+            <button class="btn btn-danger" type="button" data-testid="reset-demo-data">Reset workspace</button>
+            <a class="btn" href="/employees" target="_blank" rel="noopener" data-testid="open-employees-new-tab">
+              Open employees in new tab
+            </a>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="complianceHeading">
+          <h2 id="complianceHeading" style="font-size: 15px; margin-top: 0">Compliance</h2>
+          <iframe title="Compliance widget" src="/widget" data-testid="compliance-frame" style="width: 100%; height: 150px; border: 1px solid var(--line); border-radius: 8px"></iframe>
+        </section>
+
+        <section class="panel" aria-labelledby="recentHeading">
+          <h2 id="recentHeading" style="font-size: 15px; margin-top: 0">Recently added</h2>
+          <ul data-testid="recent-list"><li>Loading…</li></ul>
+        </section>
+      </main>
+    </div>
+
+    <div id="toastRegion"></div>
+
+    <script type="module">
+      import { api, formatCurrency, mountShell, requireAuth, toast } from '/app.js';
+
+      if (requireAuth()) {
+        mountShell('dashboard');
+
+        const response = await api('/employees?pageSize=100');
+        if (response.ok) {
+          const rows = response.data;
+          document.querySelector('[data-testid="metric-total"]').textContent = String(response.meta.total);
+          document.querySelector('[data-testid="metric-departments"]').textContent = String(
+            new Set(rows.map((r) => r.department)).size,
+          );
+          document.querySelector('[data-testid="metric-active"]').textContent = String(
+            rows.filter((r) => r.status === 'ACTIVE').length,
+          );
+          const avg = rows.length ? rows.reduce((sum, r) => sum + Number(r.salary ?? 0), 0) / rows.length : 0;
+          document.querySelector('[data-testid="metric-avg-salary"]').textContent = formatCurrency(avg);
+
+          const recent = [...rows]
+            .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+            .slice(0, 5);
+          document.querySelector('[data-testid="recent-list"]').innerHTML = recent.length
+            ? recent.map((r) => `<li data-testid="recent-item">${r.name} — ${r.department}</li>`).join('')
+            : '<li data-testid="recent-empty">No employees yet</li>';
+        } else {
+          toast('Unable to load metrics', 'error');
+        }
+
+        document.querySelector('[data-testid="document-upload"]').addEventListener('change', (event) => {
+          const files = [...event.target.files];
+          document.querySelector('[data-testid="upload-summary"]').textContent = files.length
+            ? `${files.length} document(s) selected: ${files.map((f) => f.name).join(', ')}`
+            : 'No documents selected';
+        });
+
+        document.querySelector('[data-testid="export-button"]').addEventListener('click', async () => {
+          const all = await api('/employees?pageSize=100');
+          const header = 'id,name,email,department,designation,salary,status';
+          const body = all.data
+            .map((r) => [r.id, r.name, r.email, r.department, r.designation, r.salary, r.status].join(','))
+            .join('\n');
+          const blob = new Blob([`${header}\n${body}`], { type: 'text/csv' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = 'employees-export.csv';
+          link.click();
+          URL.revokeObjectURL(link.href);
+          toast('Export ready', 'success');
+        });
+
+        document.querySelector('[data-testid="reset-demo-data"]').addEventListener('click', () => {
+          const confirmed = window.confirm('Reset the workspace? Unsaved changes will be lost.');
+          toast(confirmed ? 'Workspace reset requested' : 'Reset cancelled', confirmed ? 'success' : 'warning');
+        });
+      }
+    </script>
+  </body>
+</html>

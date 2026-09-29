@@ -1,0 +1,6 @@
+{
+  "pagination": {
+    "defaultPageSize": 25,
+    "smallPageSize": 10
+  }
+}

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign in · Prakura Workforce</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <div class="auth-wrap">
+      <main class="auth-card">
+        <div class="brand"><span class="brand-dot" aria-hidden="true"></span> Prakura Workforce</div>
+        <h1>Sign in</h1>
+        <p class="page-sub">Use your workspace account to continue.</p>
+
+        <div id="formError" class="alert alert-error" role="alert" hidden></div>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="username" placeholder="you@company.com" required />
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Your password" required />
+          </div>
+          <div class="field checkbox">
+            <input id="remember" name="remember" type="checkbox" />
+            <label for="remember">Remember me on this device</label>
+          </div>
+          <button class="btn btn-primary" type="submit" style="width: 100%" data-testid="login-submit">Sign in</button>
+        </form>
+
+        <p class="page-sub" style="margin-top: 16px; font-size: 13px">
+          <a href="/login#forgot" data-testid="forgot-password">Forgot password?</a>
+        </p>
+      </main>
+    </div>
+
+    <div id="toastRegion"></div>
+
+    <script type="module">
+      import { api, store, toast } from '/app.js';
+
+      const form = document.getElementById('loginForm');
+      const errorBox = document.getElementById('formError');
+      const submit = document.querySelector('[data-testid="login-submit"]');
+
+      if (store.token) {
+        window.location.replace('/dashboard');
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        errorBox.hidden = true;
+        const email = form.email.value.trim();
+        const password = form.password.value;
+
+        if (!email || !password) {
+          errorBox.textContent = 'Email and password are required';
+          errorBox.hidden = false;
+          return;
+        }
+
+        submit.disabled = true;
+        submit.textContent = 'Signing in…';
+        try {
+          const result = await api('/auth/login', {
+            method: 'POST',
+            auth: false,
+            body: { username: email, password },
+          });
+          if (!result.ok) {
+            errorBox.textContent = result.error?.message ?? 'Unable to sign in';
+            errorBox.hidden = false;
+            toast('Sign in failed', 'error');
+            return;
+          }
+          store.signIn(result.data.token, result.data.user);
+          const redirect = new URLSearchParams(window.location.search).get('redirect');
+          window.location.assign(redirect && redirect.startsWith('/') ? redirect : '/dashboard');
+        } finally {
+          submit.disabled = false;
+          submit.textContent = 'Sign in';
+        }
+      });
+    </script>
+  </body>
+</html>

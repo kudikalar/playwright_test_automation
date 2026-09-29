@@ -1,0 +1,35 @@
+{
+  "name": "demoshop",
+  "displayName": "Tricentis Demo Web Shop (public)",
+  "allowDestructiveTests": false,
+  "allowInsecureDefaults": false,
+  "ui": {
+    "baseUrl": "https://demowebshop.tricentis.com",
+    "loginPath": "/login",
+    "dashboardPath": "/"
+  },
+  "api": {
+    "baseUrl": "https://demowebshop.tricentis.com",
+    "healthPath": null
+  },
+  "timeouts": {
+    "test": 90000,
+    "action": 20000,
+    "navigation": 45000,
+    "expect": 15000,
+    "api": 30000
+  },
+  "retries": {
+    "local": 0,
+    "ci": 2,
+    "apiMaxAttempts": 2,
+    "apiBackoffMs": 500
+  },
+  "features": {
+    "employeeManagement": false,
+    "employeeDeletion": false,
+    "csvExport": false,
+    "visualRegression": false
+  },
+  "roles": {}
+}

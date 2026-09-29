@@ -1,0 +1,6 @@
+{
+  "performance": {
+    "maxResponseTimeMs": 1500,
+    "maxListResponseTimeMs": 2500
+  }
+}

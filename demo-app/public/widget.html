@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Compliance widget</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body style="background: #fff">
+    <main style="padding: 14px">
+      <h1 style="font-size: 15px">Compliance status</h1>
+      <p data-testid="widget-status">All mandatory policies acknowledged</p>
+      <button class="btn btn-sm" type="button" data-testid="widget-acknowledge">Acknowledge</button>
+      <p data-testid="widget-result" hidden>Acknowledged by current user</p>
+    </main>
+    <script>
+      document.querySelector('[data-testid="widget-acknowledge"]').addEventListener('click', () => {
+        document.querySelector('[data-testid="widget-result"]').hidden = false;
+      });
+    </script>
+  </body>
+</html>

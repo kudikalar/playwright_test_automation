@@ -1,0 +1,9 @@
+<testsuites>
+  <testsuite name="Demoshop Chromium - Windows 11" tests="0" time="51">
+    <properties>
+      <property name="url" value="https://app.eu-central-1.saucelabs.com/tests/366085dc88514be782bd917bf8f8b585"></property>
+      <property name="browser" value="chromium 149"></property>
+      <property name="platform" value="Windows 11"></property>
+    </properties>
+  </testsuite>
+</testsuites>

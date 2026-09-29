@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Profile · Prakura Workforce</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <header class="app-header">
+      <button class="btn btn-sm" type="button" data-testid="menu-toggle" aria-label="Toggle navigation">☰</button>
+      <div class="brand" style="margin: 0"><span class="brand-dot" aria-hidden="true"></span> Prakura Workforce</div>
+      <div class="spacer"></div>
+      <span data-testid="current-user-name"></span>
+      <span class="badge" data-testid="current-user-role"></span>
+      <button class="btn btn-sm" type="button" data-testid="logout-button">Log out</button>
+    </header>
+    <div class="layout">
+      <nav class="sidebar" aria-label="Primary">
+        <a href="/dashboard" data-nav="dashboard">Dashboard</a>
+        <a href="/employees" data-nav="employees">Employees</a>
+        <a href="/profile" data-nav="profile">Profile</a>
+      </nav>
+      <main>
+        <h1>My profile</h1>
+        <p class="page-sub">Account details for the signed-in user.</p>
+        <div class="panel">
+          <dl>
+            <dt>Name</dt><dd data-testid="profile-name">—</dd>
+            <dt>Email</dt><dd data-testid="profile-email">—</dd>
+            <dt>Role</dt><dd data-testid="profile-role">—</dd>
+          </dl>
+        </div>
+      </main>
+    </div>
+    <div id="toastRegion"></div>
+    <script type="module">
+      import { api, mountShell, requireAuth } from '/app.js';
+      if (requireAuth()) {
+        mountShell('profile');
+        const me = await api('/auth/me');
+        if (me.ok) {
+          document.querySelector('[data-testid="profile-name"]').textContent = me.data.name;
+          document.querySelector('[data-testid="profile-email"]').textContent = me.data.email;
+          document.querySelector('[data-testid="profile-role"]').textContent = me.data.role;
+        }
+      }
+    </script>
+  </body>
+</html>

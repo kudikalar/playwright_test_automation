@@ -1,0 +1,47 @@
+{
+  "validUser": {
+    "gender": "male",
+    "firstName": "Ramesh",
+    "lastName": "Kudikala",
+    "emailPrefix": "register",
+    "password": "Ramesh@123"
+  },
+  "invalidScenarios": [
+    {
+      "scenario": "malformed email and a too-short password",
+      "gender": "male",
+      "firstName": "123@gv",
+      "lastName": "ghfghh",
+      "email": "rameshk123",
+      "password": "Ram",
+      "expectedErrors": ["Wrong email", "The password should have at least 6 characters."]
+    },
+    {
+      "scenario": "confirmation password does not match",
+      "gender": "female",
+      "firstName": "Asha",
+      "lastName": "Rao",
+      "email": "mismatch@automation.test",
+      "password": "Valid@123",
+      "confirmPassword": "Other@123",
+      "expectedErrors": ["The password and confirmation password do not match."]
+    },
+    {
+      "scenario": "every required field left empty",
+      "gender": "male",
+      "firstName": "",
+      "lastName": "",
+      "email": "",
+      "password": "",
+      "expectedErrors": [
+        "First name is required.",
+        "Last name is required.",
+        "Email is required.",
+        "Password is required."
+      ]
+    }
+  ],
+  "ui": {
+    "successMessage": "Your registration completed"
+  }
+}
