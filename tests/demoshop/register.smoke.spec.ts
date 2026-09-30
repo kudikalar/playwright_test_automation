@@ -39,6 +39,7 @@ test.describe('Registration @register', () => {
     });
   });
 
+  
   for (const scenario of data.invalidScenarios) {
     test(`Register to website with Invalid Data — ${scenario.scenario} ${TAGS.functional} ${TAGS.negative}`, async ({
       registerPage,
