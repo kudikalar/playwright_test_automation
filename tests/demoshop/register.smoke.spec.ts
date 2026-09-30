@@ -65,4 +65,34 @@ test.describe('Registration @register', () => {
       });
     });
   }
+
+
+    for (const scenario of data.invalidEmails) {
+    test(`Register to website with invalid email address— ${scenario.scenario} ${TAGS.functional} ${TAGS.negative}`, async ({
+      registerPage,
+    }, testInfo) => {
+      testInfo.annotations.push({
+        type: 'test-data',
+        description: `register.invalidEmails → ${scenario.scenario}`,
+      });
+
+      await test.step(`Enter invalid email address ${scenario.scenario}`, async () => {
+        await registerPage.enterEmail("skjshfkj.com");
+      });
+
+      await test.step(`Click on register button ${scenario.scenario}`, async()=>{
+        await registerPage.clickRegisterButton();
+      })
+
+      await test.step('Verify error message ', async () => {
+        /* Invalid input must NOT produce the success message — asserting for it here would make
+           the test pass only if the shop were broken. */
+       const errors = await registerPage.getValidationErrors();
+        for (const expected of scenario.expectedErrors) {
+          expect(errors, `shows "${expected}"`).toContain("Wrong email");
+        }
+      
+      });
+    });
+  }
 });
