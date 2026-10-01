@@ -126,6 +126,21 @@ export interface RegisterTestData {
   };
 }
 
+export interface ForgotPasswordTestData {
+  readonly validUser: {
+    readonly email: string;
+    readonly successMessage: string;
+  };
+  readonly invalidScenarios: readonly {
+    readonly scenario: string;
+    readonly email: string;
+    readonly expectedError: string;
+  }[];
+  readonly ui: {
+    readonly heading: string;
+    readonly submitLabel: string;
+  };
+}
 /** Registry of every dataset name the framework knows, keyed to its parsed type. */
 export interface TestDataRegistry {
   readonly login: LoginTestData;
@@ -133,6 +148,7 @@ export interface TestDataRegistry {
   readonly dashboard: DashboardTestData;
   readonly api: ApiTestData;
   readonly register: RegisterTestData;
+  readonly forgotPassword: ForgotPasswordTestData;
 }
 
 export type TestDataName = keyof TestDataRegistry;

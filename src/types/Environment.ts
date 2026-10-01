@@ -68,6 +68,7 @@ export interface UiEnvironmentConfig {
   readonly baseUrl: string;
   readonly loginPath: string;
   readonly dashboardPath: string;
+  readonly forgotPasswordPath: string;
 }
 
 export interface ApiEnvironmentConfig {

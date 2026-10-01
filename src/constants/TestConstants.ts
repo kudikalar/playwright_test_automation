@@ -18,6 +18,7 @@ export const TAGS = {
   dataDriven: '@data-driven',
   flakyWatch: '@flaky-watch',
   functional: '@functional',
+  forgotPassword: '@forgotpassword',
 } as const;
 
 export type Tag = (typeof TAGS)[keyof typeof TAGS];
