@@ -11,6 +11,7 @@ import { EmployeePage } from '../pages/EmployeePage';
 import { LoginPage } from '../pages/LoginPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { RegisterPage } from '@pages/RegisterPage';
+import { ForgotPasswordPage } from '@pages/ForgotPasswordPage';
 
 export interface PageObjectFixtures {
   readonly loginPage: LoginPage;
@@ -18,6 +19,7 @@ export interface PageObjectFixtures {
   readonly employeePage: EmployeePage;
   readonly profilePage: ProfilePage;
   readonly registerPage: RegisterPage;
+  readonly forgotPasswordPage: ForgotPasswordPage;
 }
 
 export const pageTest = baseTest.extend<PageObjectFixtures>({
@@ -36,4 +38,7 @@ export const pageTest = baseTest.extend<PageObjectFixtures>({
   registerPage: async ({ page }, use) => {
     await use(new RegisterPage(page));
   },
+  forgotPasswordPage: async ({ page }, use) => {
+    await use(new ForgotPasswordPage(page));
+  }
 });
