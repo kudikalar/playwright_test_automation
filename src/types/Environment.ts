@@ -68,7 +68,8 @@ export interface UiEnvironmentConfig {
   readonly baseUrl: string;
   readonly loginPath: string;
   readonly dashboardPath: string;
-  readonly forgotPasswordPath: string;
+  /** Only set where the target has a password-reset screen. */
+  readonly forgotPasswordPath?: string;
 }
 
 export interface ApiEnvironmentConfig {

@@ -90,30 +90,36 @@ export interface ApiTestData {
   }[];
 }
 
-export type Gender = 'male' | 'female';
-
 /**
- * A registration that must succeed. The email is built at runtime from `emailPrefix`, because the
- * shop keeps every account forever and a fixed address would only ever register once.
+ * A registration that must succeed. The email and mobile are built at runtime (from `emailPrefix`
+ * and a random 10-digit number), because the site keeps every account and a fixed value would
+ * only ever register once.
  */
 export interface ValidRegistration {
-  readonly gender: Gender;
   readonly firstName: string;
-  readonly lastName: string;
+  readonly lastName?: string;
   readonly emailPrefix: string;
+  readonly emailDomain: string;
   readonly password: string;
+}
+
+export interface InvalidEmailRegistration {
+  readonly email: string;
+  readonly expectedErrors: readonly string[];
 }
 
 /** A registration the form must reject, and the validation messages it must show. */
 export interface InvalidRegistrationCase {
   readonly scenario: string;
-  readonly gender: Gender;
   readonly firstName: string;
-  readonly lastName: string;
+  readonly lastName?: string;
   readonly email: string;
+  readonly mobile: string;
   readonly password: string;
   /** Defaults to `password` when omitted. */
   readonly confirmPassword?: string;
+  /** Defaults to `true` when omitted. */
+  readonly acceptTerms?: boolean;
   readonly expectedErrors: readonly string[];
 }
 
@@ -122,14 +128,19 @@ export interface RegisterTestData {
   readonly validUser: ValidRegistration;
   readonly invalidScenarios: readonly InvalidRegistrationCase[];
   readonly ui: {
+    readonly heading: string;
+    readonly subtitle: string;
+    readonly passwordHint: string;
+    readonly submitLabel: string;
     readonly successMessage: string;
+    readonly formErrorMessage: string;
   };
+  readonly invalidEmail: InvalidEmailRegistration;
 }
 
 export interface ForgotPasswordTestData {
   readonly validUser: {
     readonly email: string;
-    readonly successMessage: string;
   };
   readonly invalidScenarios: readonly {
     readonly scenario: string;

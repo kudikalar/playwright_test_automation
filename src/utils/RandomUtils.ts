@@ -31,6 +31,11 @@ export function uniqueEmail(prefix = 'user', domain = 'automation.test'): string
   return `${TEST_DATA_PREFIX}.${prefix}.${uniqueToken()}@${domain}`.toLowerCase();
 }
 
+/** Random 10-digit Indian mobile number (starts 6–9), as a registration form expects. */
+export function uniqueMobile(): string {
+  return `${randomInt(6, 10)}${String(randomInt(0, 1_000_000_000)).padStart(9, '0')}`;
+}
+
 export function uniqueName(base = 'Auto Employee'): string {
   return `${base} ${uniqueToken().slice(-6).toUpperCase()}`;
 }

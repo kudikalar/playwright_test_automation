@@ -14,7 +14,7 @@
     "test:hybrid": "playwright test --project=chromium tests/hybrid",
     "test:visual": "playwright test --project=visual",
     "test:visual:update": "playwright test --project=visual --update-snapshots",
-    "test:functional": "playwright test --project=api --project=chromium --grep @functional",
+    "test:functional": "playwright test --project=api --project=chromium --grep @forgotpassword",
     "test:sanity": "playwright test --project=chromium --grep @sanity",
     "test:regression": "playwright test --project=api --project=chromium --grep @regression",
     "test:e2e": "playwright test --project=chromium --grep @e2e",
@@ -52,10 +52,10 @@
     "test:full": "playwright test",
     "test:security": "playwright test --project=api --grep @security",
     "sauce:config": "node --experimental-strip-types scripts/write-sauce-config.mts",
-    "test:sauce": "saucectl run --config .sauce/config.yml",
-    "test:sauce:demoshop": "saucectl run --config .sauce/config.yml --select-suite \"Demoshop Chrome - Windows 11\"",
-    "test:demoshop": "cross-env TEST_ENV=demoshop playwright test --project=demoshop"
-    
+    "test:sauce": "node scripts/sauce-run.mjs --config .sauce/config.yml",
+    "test:sauce:demoshop": "node scripts/sauce-run.mjs --config .sauce/config.yml --select-suite \"Demoshop Chrome - Windows 11\"",
+    "test:demoshop": "cross-env TEST_ENV=demoshop playwright test --project=demoshop",
+    "test:forgotpassword": "cross-env TEST_ENV=demoshop playwright test --project=chromium --grep @forgotpassword"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
