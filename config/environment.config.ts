@@ -42,7 +42,10 @@ export class EnvironmentConfigurationError extends Error {
 }
 
 /** Reads `TEST_ENV`, defaulting to `dev`, and rejects anything unrecognised. */
-export function resolveEnvironmentName(raw = process.env.TEST_ENV): EnvironmentName {
+export function resolveEnvironmentName(raw?: string): EnvironmentName {
+  /* `.env` must be loaded before TEST_ENV is read, or a TEST_ENV set only there is ignored. */
+  loadDotEnvOnce();
+  raw ??= process.env.TEST_ENV;
   const candidate = (raw ?? 'dev').trim().toLowerCase();
   if (!VALID_ENVIRONMENTS.includes(candidate as EnvironmentName)) {
     throw new EnvironmentConfigurationError(
@@ -89,7 +92,10 @@ function buildEnvironment(name: EnvironmentName): ResolvedEnvironment {
   loadDotEnvOnce();
   const definition = readDefinition(name);
 
-  const uiBaseUrl = stripTrailingSlash(process.env.UI_BASE_URL ?? definition.ui.baseUrl);
+  /* `BASE_URL` is the short form most teams set in `.env`; `UI_BASE_URL` still wins when both exist. */
+  const uiBaseUrl = stripTrailingSlash(
+    process.env.UI_BASE_URL || process.env.BASE_URL || definition.ui.baseUrl,
+  );
   const apiBaseUrl = stripTrailingSlash(process.env.API_BASE_URL ?? definition.api.baseUrl);
   const isCi = process.env.CI === 'true' || process.env.CI === '1';
 

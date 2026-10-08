@@ -1,47 +1,108 @@
 {
   "validUser": {
-    "gender": "male",
     "firstName": "Ramesh",
     "lastName": "Kudikala",
     "emailPrefix": "register",
-    "password": "Ramesh@123"
+    "emailDomain": "example.com",
+    "password": "Ramesh@Secure#2026"
+  },
+  "invalidEmail": {
+    "email": "rameshk.com",
+    "expectedErrors": ["Enter a valid email address."]
   },
   "invalidScenarios": [
     {
       "scenario": "malformed email and a too-short password",
-      "gender": "male",
-      "firstName": "123@gv",
-      "lastName": "ghfghh",
+      "firstName": "Ramesh",
+      "lastName": "Kudikala",
       "email": "rameshk123",
+      "mobile": "9876543210",
       "password": "Ram",
-      "expectedErrors": ["Wrong email", "The password should have at least 6 characters."]
+      "expectedErrors": [
+        "Enter a valid email address.",
+        "Use 12–128 characters and choose a stronger password."
+      ]
+    },
+    {
+      "scenario": "invalid email with @ symbol missing",
+      "firstName": "test",
+      "lastName": "ghfghh",
+      "email": "rameshk.com",
+      "mobile": "9876543210",
+      "password": "testing123456",
+      "confirmPassword": "testing123456",
+      "expectedErrors": ["Enter a valid email address."]
+    },
+    {
+      "scenario": "first name with digits and symbols",
+      "firstName": "123@gv",
+      "lastName": "Kudikala",
+      "email": "name.check@example.com",
+      "mobile": "9876543210",
+      "password": "Valid@Password123",
+      "expectedErrors": ["Enter your first name."]
+    },
+    {
+      "scenario": "last name with digits",
+      "firstName": "Ramesh",
+      "lastName": "R2D2",
+      "email": "name.check@example.com",
+      "mobile": "9876543210",
+      "password": "Valid@Password123",
+      "expectedErrors": ["Use letters, spaces, apostrophes or hyphens."]
+    },
+    {
+      "scenario": "invalid mobile number",
+      "firstName": "Asha",
+      "lastName": "Rao",
+      "email": "asha.rao@example.com",
+      "mobile": "12345",
+      "password": "Valid@Password123",
+      "expectedErrors": ["Enter a valid 10-digit mobile number."]
     },
     {
       "scenario": "confirmation password does not match",
-      "gender": "female",
       "firstName": "Asha",
       "lastName": "Rao",
-      "email": "mismatch@automation.test",
-      "password": "Valid@123",
-      "confirmPassword": "Other@123",
-      "expectedErrors": ["The password and confirmation password do not match."]
+      "email": "mismatch@example.com",
+      "mobile": "9876543210",
+      "password": "Valid@Password123",
+      "confirmPassword": "Other@Password123",
+      "expectedErrors": ["Passwords do not match."]
+    },
+    {
+      "scenario": "terms not accepted",
+      "firstName": "Asha",
+      "lastName": "Rao",
+      "email": "terms@example.com",
+      "mobile": "9876543210",
+      "password": "Valid@Password123",
+      "acceptTerms": false,
+      "expectedErrors": ["Accept the terms and acknowledge the privacy notice."]
     },
     {
       "scenario": "every required field left empty",
-      "gender": "male",
       "firstName": "",
       "lastName": "",
       "email": "",
+      "mobile": "",
       "password": "",
+      "acceptTerms": false,
       "expectedErrors": [
-        "First name is required.",
-        "Last name is required.",
-        "Email is required.",
-        "Password is required."
+        "Enter your first name.",
+        "Enter a valid email address.",
+        "Enter a valid 10-digit mobile number.",
+        "Use 12–128 characters and choose a stronger password.",
+        "Accept the terms and acknowledge the privacy notice."
       ]
     }
   ],
   "ui": {
-    "successMessage": "Your registration completed"
+    "heading": "Create your account",
+    "subtitle": "It takes a minute. You'll verify your email before you can sign in.",
+    "passwordHint": "12–128 characters; spaces are fine — a passphrase works well.",
+    "submitLabel": "Create account",
+    "successMessage": "Check your email",
+    "formErrorMessage": "Please correct the highlighted fields."
   }
 }

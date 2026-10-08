@@ -1,15 +1,16 @@
 {
   "name": "demoshop",
-  "displayName": "Tricentis Demo Web Shop (public)",
+  "displayName": "Vision Health Care (public demo)",
   "allowDestructiveTests": false,
   "allowInsecureDefaults": false,
   "ui": {
-    "baseUrl": "https://demowebshop.tricentis.com",
+    "baseUrl": "https://vhc-healthcarefe.vercel.app",
     "loginPath": "/login",
-    "dashboardPath": "/"
+    "dashboardPath": "/",
+    "forgotPasswordPath": "/forgot-password"
   },
   "api": {
-    "baseUrl": "https://demowebshop.tricentis.com",
+    "baseUrl": "https://vhc-healthcarefe.vercel.app/api",
     "healthPath": null
   },
   "timeouts": {
