@@ -141,18 +141,29 @@ test.describe('Employee API @api', () => {
     });
 
     await test.step('Paging splits the directory consistently', async () => {
-      const firstPage = await adminEmployeeApi.list({ page: 1, pageSize: 2 });
-      const secondPage = await adminEmployeeApi.list({ page: 2, pageSize: 2 });
+      /*
+       * Two requests are not one snapshot: a parallel worker adding or deleting an employee between
+       * them shifts every later row by one and makes the pages look like they overlap. The pair is
+       * retried until both pages saw the same directory (same total), which is the only state the
+       * overlap assertion is meaningful in.
+       */
+      await expect(async () => {
+        const firstPage = await adminEmployeeApi.list({ page: 1, pageSize: 2 });
+        const secondPage = await adminEmployeeApi.list({ page: 2, pageSize: 2 });
+        expect(secondPage.meta?.total, 'directory changed between the two page requests').toBe(
+          firstPage.meta?.total,
+        );
 
-      verify(firstPage).hasPaginationMeta().isArray({ length: 2 });
-      expect(firstPage.meta?.totalPages).toBe(Math.ceil((firstPage.meta?.total ?? 0) / 2));
+        verify(firstPage).hasPaginationMeta().isArray({ length: 2 });
+        expect(firstPage.meta?.totalPages).toBe(Math.ceil((firstPage.meta?.total ?? 0) / 2));
 
-      const firstIds = (firstPage.data ?? []).map((employee) => employee.id);
-      const secondIds = (secondPage.data ?? []).map((employee) => employee.id);
-      expect(
-        firstIds.some((id) => secondIds.includes(id)),
-        'pages must not overlap',
-      ).toBe(false);
+        const firstIds = (firstPage.data ?? []).map((employee) => employee.id);
+        const secondIds = (secondPage.data ?? []).map((employee) => employee.id);
+        expect(
+          firstIds.some((id) => secondIds.includes(id)),
+          'pages must not overlap',
+        ).toBe(false);
+      }).toPass({ timeout: 15_000 });
     });
   });
 

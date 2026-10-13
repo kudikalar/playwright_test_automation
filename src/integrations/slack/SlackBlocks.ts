@@ -13,6 +13,7 @@
 
 import type { ExtentReportModel, ExtentStatus, ExtentTest } from '../../reporting/ExtentTypes';
 import { humanDuration } from '../../utils/DateUtils';
+import type { IntegrationResult } from '../IntegrationTypes';
 
 /* --------------------------------------------------------------- limits -- */
 
@@ -113,6 +114,8 @@ export interface SlackMessageOptions {
   /** Rendered as a link button; omitted when CI publishes nothing to link to. */
   readonly reportUrl?: string;
   readonly maxFailures?: number;
+  /** Earlier-phase integration outcomes (Jira, Zephyr, Sauce) linked under "Recorded in". */
+  readonly priorResults?: readonly IntegrationResult[];
 }
 
 /** The run's outcome in one word, plus the emoji shortcode that carries it at a glance. */
@@ -309,6 +312,27 @@ export function buildRunSummaryMessage(options: SlackMessageOptions): SlackMessa
           environment.projects.length > 1,
         ),
       ),
+    });
+  }
+
+  const recorded = (options.priorResults ?? []).filter((result) => result.status === 'published');
+  if (recorded.length > 0) {
+    blocks.push({
+      type: 'context',
+      elements: [
+        mrkdwn(
+          clampText(
+            `*Recorded in:* ${recorded
+              .map((result) =>
+                isRenderableUrl(result.url)
+                  ? `<${result.url.replace(/[|<>]/g, (c) => encodeURIComponent(c))}|${escapeSlackText(result.name)}>`
+                  : escapeSlackText(result.name),
+              )
+              .join(' · ')}`,
+            CONTEXT_ELEMENT_LIMIT,
+          ),
+        ),
+      ],
     });
   }
 

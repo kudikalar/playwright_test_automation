@@ -1,13 +1,9 @@
-
 import { defineConfig, devices } from '@playwright/test';
 
 import { getEnvironment } from './config/environment.config';
 import { frameworkConfig } from './config/framework.config';
 
-import {
-  PATHS,
-  VIEWPORTS,
-} from './src/constants/FrameworkConstants';
+import { PATHS, VIEWPORTS } from './src/constants/FrameworkConstants';
 
 const environment = getEnvironment();
 
@@ -29,6 +25,7 @@ const isSauce = process.env.SAUCE === 'true';
  * - DemoShop
  */
 const UI_TEST_IGNORE = [
+  '**/tests/unit/**',
   '**/tests/api/**',
   '**/tests/visual/**',
   '**/tests/demoshop/**',
@@ -90,8 +87,13 @@ export default defineConfig({
   /**
    * Visual baselines are stored beside their specs.
    */
+  /*
+   * Baselines are per OS: the app's font stack (-apple-system, "Segoe UI", Roboto…) renders a
+   * different typeface on macOS, Windows and Linux, so one shared image can only ever pass on the
+   * machine that recorded it. Record a platform's baselines once with `npm run test:visual:update`.
+   */
   snapshotPathTemplate:
-    '{testDir}/__screenshots__/{projectName}/{testFileName}/{arg}{ext}',
+    '{testDir}/__screenshots__/{projectName}/{platform}/{testFileName}/{arg}{ext}',
 
   /**
    * Global lifecycle.
@@ -165,13 +167,7 @@ export default defineConfig({
       },
     ],
 
-    ...(frameworkConfig.extentEnabled
-      ? [
-          [
-            './src/reporting/ExtentReporter.ts',
-          ] as [string],
-        ]
-      : []),
+    ...(frameworkConfig.extentEnabled ? [['./src/reporting/ExtentReporter.ts'] as [string]] : []),
   ],
 
   /**
@@ -185,6 +181,21 @@ export default defineConfig({
    * ===========================================================================
    */
   projects: [
+    /**
+     * -------------------------------------------------------------------------
+     * UNIT — framework self-tests (integrations, utilities). No browser, no app.
+     * -------------------------------------------------------------------------
+     */
+    {
+      name: 'unit',
+
+      testDir: './tests/unit',
+
+      metadata: {
+        requiresBrowser: false,
+      },
+    },
+
     /**
      * -------------------------------------------------------------------------
      * API
@@ -392,9 +403,7 @@ export default defineConfig({
               launchOptions: {
                 slowMo: frameworkConfig.slowMoMs,
 
-                args: [
-                  '--force-device-scale-factor=1',
-                ],
+                args: ['--force-device-scale-factor=1'],
               },
             }),
       },
@@ -422,12 +431,9 @@ export default defineConfig({
           stderr: 'pipe' as const,
 
           env: {
-            DEMO_APP_PORT: String(
-              frameworkConfig.referenceAppPort,
-            ),
+            DEMO_APP_PORT: String(frameworkConfig.referenceAppPort),
           },
         },
       }
     : {}),
 });
-

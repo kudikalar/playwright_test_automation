@@ -433,29 +433,42 @@ Two behaviours are deliberate and worth knowing:
 
 ## Integrations
 
-Slack, Jira, Zephyr Scale and Sauce Labs. **Every one is off until its environment variables are
-set** — a default run makes no network calls and needs no credentials. See `.env.example`.
+Jira, Zephyr Scale, Slack, Email and Sauce Labs. **Every one is off until its environment variables
+are set**: a default run makes no network calls and needs no credentials. Full guide:
+[docs/INTEGRATIONS.md](docs/INTEGRATIONS.md).
 
-| Target           | Enable with                                                  | What it does                                                            |
-| ---------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| **Slack**        | `SLACK_WEBHOOK_URL`                                          | one Block Kit run summary; `SLACK_NOTIFY=failure` (default) or `always` |
-| **Jira Cloud**   | `JIRA_ENABLED=true` + base URL / email / API token / project | one comment per referenced issue key, in Atlassian Document Format      |
-| **Zephyr Scale** | `ZEPHYR_ENABLED=true` + API token + project key              | one test execution per test carrying a Zephyr case key, into a cycle    |
-| **Sauce Labs**   | `SAUCE_USERNAME` + `SAUCE_ACCESS_KEY` + `SAUCE_BUILD_NAME`   | links the run to its Sauce jobs                                         |
+| Target           | Enable with                                                    | What it does                                                                                                  |
+| ---------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Jira Cloud**   | `JIRA_ENABLED=true` + base URL / email / API token / project   | comments on linked issues; files **one de-duplicated bug per failing test** with screenshot; notes recoveries |
+| **Zephyr Scale** | `ZEPHYR_ENABLED=true` + API token + project key                | one execution per linked test case, into a cycle per run                                                      |
+| **Slack**        | `SLACK_WEBHOOK_URL`                                            | one Block Kit summary per run, linking the Jira bug / Zephyr cycle; `SLACK_NOTIFY_ON`                         |
+| **Email**        | `EMAIL_ENABLED=true` + `SMTP_HOST` + `EMAIL_FROM` + `EMAIL_TO` | Outlook-safe HTML summary over any SMTP relay, report attached; `EMAIL_NOTIFY_ON`                             |
+| **Sauce Labs**   | `SAUCE_USERNAME` + `SAUCE_ACCESS_KEY` + `SAUCE_REGION`         | cloud runs via saucectl; `npm run test:sauce:publish` publishes the cloud report                              |
 
-Jira and Zephyr are driven by keys a test declares in its own title, so nothing is ever guessed:
+Publishing runs in two phases: systems of record (Sauce, Jira, Zephyr) in parallel, then notifiers
+(Slack, Email), so the message can say where the run was recorded.
 
 ```ts
-test('Checkout rejects an expired card @PROJ-123 @PROJ-T42 @regression', async () => { … });
+import { links } from '@utils/TestLinks';
+
+test('Reset link is sent @smoke', links({ jira: 'PAY-3214', zephyr: 'PAY-T101' }), async () => { … });
 ```
 
-`@PROJ-123` is commented on in Jira; `@PROJ-T42` is published as a Zephyr execution. A test with no
-key is reported as skipped-for-lack-of-a-key rather than invented.
+```bash
+npm run integrations:doctor        # prove every credential works (read-only)
+npm run integrations:doctor:send   # + test Slack message and test email
+npm run integrations:publish       # re-send the last run without re-running tests
+```
 
-Three rules hold for all four (`src/integrations/IntegrationTypes.ts`): they are opt-in, they never
-throw — a dead webhook cannot turn a green suite red — and no token is ever logged, rendered or
-written to an artifact. Every target reports a row in the report's Integrations tab, including why
-it was inactive.
+Rules for every integration (`src/integrations/IntegrationTypes.ts`):
+
+- **Opt-in.** Nothing publishes until its variables are set.
+- **Never throws.** A dead webhook cannot turn a green suite red.
+- **Bounded.** Each phase has a time budget, so a slow endpoint cannot hold CI open.
+- **No secrets out.** No token is ever logged, rendered or written to an artifact.
+
+`INTEGRATIONS_DISABLED=true` is a master kill-switch; `INTEGRATIONS_ONLY=slack,email` restricts a
+run to a subset. `npm run secrets:check` (also in the PR gate) blocks committed credentials.
 
 ### Sauce Labs
 
@@ -465,12 +478,13 @@ runs it on their VMs via `saucectl`, so there is no `wsEndpoint` to point at:
 ```bash
 npm install -g saucectl        # standalone CLI, not an npm dependency
 npm run sauce:config           # regenerate .sauce/config.yml from SauceConfig.ts
-npm run test:sauce
+npm run test:sauce             # run on Sauce
+npm run test:sauce:publish     # run on Sauce, then publish to Jira / Zephyr / Slack / Email
 ```
 
-`.sauce/config.yml` is generated from the typed definition in `src/integrations/sauce/SauceConfig.ts`
-so the two cannot drift; edit the TypeScript, not the YAML. It contains no credentials — `saucectl`
-reads `SAUCE_USERNAME` and `SAUCE_ACCESS_KEY` from the environment.
+`.sauce/config.yml` is generated from the typed definition in `src/integrations/sauce/SauceConfig.ts`.
+It contains no credentials; `saucectl` reads `SAUCE_USERNAME` and `SAUCE_ACCESS_KEY` from the
+environment.
 
 > **`.sauceignore` is security-critical.** `saucectl` zips and uploads the whole of `rootDir`.
 > Without that file the archive would carry your `.env` and `storage/auth` session tokens to the
@@ -499,20 +513,25 @@ npm run test:visual           # compare against baselines
 npm run test:visual:update    # re-baseline deliberately, then review the diff in the PR
 ```
 
-Baselines live in `tests/visual/__screenshots__/<project>/…` — separate from failure screenshots.
-Dynamic regions are masked in the spec rather than excluded from coverage.
+Baselines live in `tests/visual/__screenshots__/<project>/<platform>/…` (`darwin`, `win32`,
+`linux`), separate from failure screenshots. They are per OS because the app's system font stack
+renders a different typeface on each, so a Windows baseline can never match a Mac. The first time
+you run visual tests on a new OS, record its baselines once with `npm run test:visual:update` and
+commit them. Dynamic regions are masked in the spec rather than excluded from coverage.
 
 ---
 
 ## CI/CD
 
-| Workflow         | Trigger                                      | Scope                                                                 |
-| ---------------- | -------------------------------------------- | --------------------------------------------------------------------- |
-| `playwright.yml` | pull request, manual                         | lint + types + format, API suite, UI matrix (chromium/firefox/webkit) |
-| `smoke.yml`      | push to main/develop, manual per environment | `@smoke` on chromium                                                  |
-| `regression.yml` | nightly schedule, manual                     | API regression + sharded UI matrix incl. mobile/tablet                |
+| Workflow         | Trigger                                      | Scope                                                                        | Publishes                          |
+| ---------------- | -------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------- |
+| `playwright.yml` | pull request, manual                         | secret scan, lint, types, format, framework unit tests, API suite, UI matrix | nothing                            |
+| `smoke.yml`      | push to main/develop, manual per environment | `@smoke` on API + chromium                                                   | Slack + Email on failure           |
+| `regression.yml` | nightly schedule, manual                     | API + sharded UI matrix incl. mobile/tablet, then **one merged report**      | Jira + Zephyr + Slack + Email once |
+| `sauce.yml`      | weekly schedule, manual                      | `.sauce/config.yml` suites on Sauce Labs                                     | Jira + Zephyr + Slack + Email      |
 
-Each job installs browsers, injects credentials from repository secrets, and uploads the Extent
+Secrets and repository variables for each integration are listed in
+[docs/INTEGRATIONS.md#cicd-wiring](docs/INTEGRATIONS.md#cicd-wiring). Each job uploads the Extent
 report, JUnit XML, screenshots, videos and traces as artifacts.
 
 ---

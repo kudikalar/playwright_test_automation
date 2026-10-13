@@ -126,6 +126,7 @@ function messageOf(error: unknown): string {
 
 export class SlackNotifier implements Integration {
   public readonly name = 'Slack';
+  public readonly phase = 'notify' as const;
 
   private readonly webhookUrl: string | undefined;
   /** Held apart from the URL so text quoting only the secret path is scrubbed too. */
@@ -206,6 +207,7 @@ export class SlackNotifier implements Integration {
         model: context.model,
         ...(reportUrl === undefined ? {} : { reportUrl }),
         maxFailures: this.maxFailures,
+        ...(context.priorResults === undefined ? {} : { priorResults: context.priorResults }),
       });
 
       /*

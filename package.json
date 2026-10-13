@@ -1,6 +1,6 @@
 {
   "name": "playwright-enterprise-framework",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "description": "Enterprise-grade Playwright + TypeScript UI / API / Hybrid test automation platform",
   "type": "module",
@@ -8,12 +8,14 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "test": "playwright test --project=api --project=chromium",
+    "test": "playwright test --project=unit --project=api --project=chromium",
+    "test:unit": "playwright test --project=unit",
     "test:ui": "playwright test --project=chromium tests/ui",
     "test:api": "playwright test --project=api",
     "test:hybrid": "playwright test --project=chromium tests/hybrid",
     "test:visual": "playwright test --project=visual",
     "test:visual:update": "playwright test --project=visual --update-snapshots",
+    "test:smoke": "playwright test --project=api --project=chromium --grep @smoke",
     "test:functional": "playwright test --project=api --project=chromium --grep @forgotpassword",
     "test:sanity": "playwright test --project=chromium --grep @sanity",
     "test:regression": "playwright test --project=api --project=chromium --grep @regression",
@@ -25,7 +27,6 @@
     "test:qa": "cross-env TEST_ENV=qa playwright test --project=api --project=chromium",
     "test:uat": "cross-env TEST_ENV=uat playwright test --project=api --project=chromium",
     "test:prod": "cross-env TEST_ENV=prod playwright test --project=api --project=chromium --grep @smoke",
-
     "test:chromium": "playwright test --project=chromium",
     "test:firefox": "playwright test --project=firefox",
     "test:webkit": "playwright test --project=webkit",
@@ -43,6 +44,11 @@
     "demo-app": "node demo-app/server.mjs",
     "clean": "node scripts/clean.mjs",
     "verify": "node scripts/verify-framework.mjs",
+    "ci:verify": "npm run secrets:check && npm run typecheck && npm run lint && npm run test:unit",
+    "secrets:check": "node scripts/check-secrets.mjs",
+    "integrations:doctor": "tsx scripts/integrations-doctor.ts",
+    "integrations:doctor:send": "tsx scripts/integrations-doctor.ts --send-test",
+    "integrations:publish": "tsx scripts/integrations-publish.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,mts,js,mjs,json,md,yml}\"",
@@ -53,6 +59,7 @@
     "test:security": "playwright test --project=api --grep @security",
     "sauce:config": "node --experimental-strip-types scripts/write-sauce-config.mts",
     "test:sauce": "node scripts/sauce-run.mjs --config .sauce/config.yml",
+    "test:sauce:publish": "node scripts/sauce-run.mjs --publish --config .sauce/config.yml",
     "test:sauce:demoshop": "node scripts/sauce-run.mjs --config .sauce/config.yml --select-suite \"Demoshop Chrome - Windows 11\"",
     "test:demoshop": "cross-env TEST_ENV=demoshop playwright test --project=demoshop",
     "test:forgotpassword": "cross-env TEST_ENV=demoshop playwright test --project=chromium --grep @forgotpassword"
@@ -61,6 +68,8 @@
     "@eslint/js": "^9.39.1",
     "@playwright/test": "1.61.1",
     "@types/node": "^24.10.1",
+    "@types/nodemailer": "^8.0.2",
+    "@types/smtp-server": "^3.5.13",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "cross-env": "^10.1.0",
@@ -68,7 +77,10 @@
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-playwright": "^2.2.2",
+    "nodemailer": "^10.1.0",
     "prettier": "^3.6.2",
+    "smtp-server": "^3.19.21",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.4"
   }

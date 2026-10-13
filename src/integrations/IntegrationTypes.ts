@@ -21,7 +21,18 @@ export interface IntegrationContext {
   readonly reportDir: string;
   /** Public URL of the report when CI publishes one (e.g. a Pages or artifact link). */
   readonly reportUrl?: string;
+  /**
+   * Results of the integrations that ran in an earlier phase. Notifiers (Slack, email) run last
+   * so they can tell a human where the run was recorded — "bug PAY-812 filed", "cycle PAY-R14".
+   */
+  readonly priorResults?: readonly IntegrationResult[];
 }
+
+/**
+ * Systems of record run first and in parallel; notifiers run after them so their message can
+ * link to what the first phase produced.
+ */
+export type IntegrationPhase = 'record' | 'notify';
 
 export type IntegrationStatus = 'published' | 'skipped' | 'failed';
 
@@ -38,6 +49,8 @@ export interface IntegrationResult {
 export interface Integration {
   /** Display name used in logs and in the report's Integrations panel. */
   readonly name: string;
+  /** Defaults to `record` when absent. */
+  readonly phase?: IntegrationPhase;
   /** True only when every required environment variable is present. */
   isEnabled(): boolean;
   /** Why the integration is inactive, shown in the report instead of silence. */

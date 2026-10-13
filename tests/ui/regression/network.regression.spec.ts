@@ -44,6 +44,7 @@ test.describe('Network behaviour @ui', () => {
     const response = await test.step('Filter and wait for the backing call', async () => {
       const pending = waitForApiResponse(employeesAs.rawPage, API_ROUTES.employees.root, {
         status: HTTP_STATUS.OK,
+        query: { department: 'Engineering' },
       });
       await employeesAs.filterByDepartment('Engineering');
       return pending;
@@ -91,7 +92,8 @@ test.describe('Network behaviour @ui', () => {
 
     /* The page still works with decorative assets blocked. */
     await employeesAs.expectLoaded();
-    expect(await employeesAs.table.getRowCount()).toBeGreaterThan(0);
+    /* Rows arrive from an async fetch after the shell renders; wait for them, do not count once. */
+    await expect(employeesAs.table.rows).not.toHaveCount(0);
     await employeesAs.clearRoutes();
   });
 });

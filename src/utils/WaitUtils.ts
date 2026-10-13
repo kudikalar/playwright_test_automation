@@ -59,13 +59,26 @@ export async function waitForCondition(
 export async function waitForApiResponse(
   page: Page,
   urlFragment: string,
-  options: WaitOptions & { readonly status?: number } = {},
+  options: WaitOptions & {
+    readonly status?: number;
+    /**
+     * Query parameters the request must carry. Without this, a wait started while the page's
+     * initial load is still in flight can resolve on that unfiltered response instead.
+     */
+    readonly query?: Readonly<Record<string, string>>;
+  } = {},
 ): Promise<Response> {
   const timeout = options.timeout ?? DEFAULT_TIMEOUTS.navigation;
+  const queryMatches = (url: string): boolean => {
+    if (options.query === undefined) return true;
+    const params = new URL(url).searchParams;
+    return Object.entries(options.query).every(([key, value]) => params.get(key) === value);
+  };
   try {
     return await page.waitForResponse(
       (response) =>
         response.url().includes(urlFragment) &&
+        queryMatches(response.url()) &&
         (options.status === undefined || response.status() === options.status),
       { timeout },
     );
@@ -75,7 +88,7 @@ export async function waitForApiResponse(
       {
         operation: 'waitForApiResponse',
         target: urlFragment,
-        expected: options.status ? `status ${options.status}` : 'any response',
+        expected: `${options.status ? `status ${options.status}` : 'any response'}${options.query ? ` with ${new URLSearchParams(options.query).toString()}` : ''}`,
         url: page.url(),
         timeout,
       },

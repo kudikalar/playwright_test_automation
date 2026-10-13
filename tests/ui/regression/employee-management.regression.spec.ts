@@ -129,15 +129,11 @@ test.describe('Employee management @ui', () => {
 
     await test.step('Clicking a column header toggles the sort direction', async () => {
       const first = await employeesAs.table.sortByColumn('Name');
-      expect(
-        await employeesAs.table.isColumnSorted('Name', first === 'ascending' ? 'asc' : 'desc'),
-      ).toBe(true);
+      await employeesAs.table.expectColumnSorted('Name', first === 'ascending' ? 'asc' : 'desc');
 
       const second = await employeesAs.table.sortByColumn('Name');
       expect(second, 'a second click must reverse the order').not.toBe(first);
-      expect(
-        await employeesAs.table.isColumnSorted('Name', second === 'ascending' ? 'asc' : 'desc'),
-      ).toBe(true);
+      await employeesAs.table.expectColumnSorted('Name', second === 'ascending' ? 'asc' : 'desc');
     });
 
     await test.step('A smaller page size splits the directory', async () => {

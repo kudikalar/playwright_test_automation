@@ -1,7 +1,15 @@
+import { getEnvironment } from '@config/environment.config';
 import { MODULES, TAGS } from '@constants/TestConstants';
 import { expect, test } from '@fixtures/index';
 
 test.describe('Forgot Password @forgotpassword', () => {
+  /* Only environments that expose the reset flow declare `ui.forgotPasswordPath` (today: demoshop).
+     Elsewhere the page does not exist, so the run reports a skip instead of a false failure. */
+  test.skip(
+    !getEnvironment().ui.forgotPasswordPath,
+    'This environment has no forgot-password page (set ui.forgotPasswordPath to enable).',
+  );
+
   test.beforeEach(async ({ forgotPasswordPage }, testInfo) => {
     testInfo.annotations.push({ type: 'module', description: MODULES.authentication });
     await forgotPasswordPage.open();

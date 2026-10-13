@@ -28,3 +28,7 @@ playwright-report
 .DS_Store
 .idea
 .vscode
+
+# ---- CI blob reports ----
+blob-report
+all-blob-reports

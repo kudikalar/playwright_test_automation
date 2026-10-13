@@ -6,7 +6,11 @@
  * current environment (shell/CI values win), fails fast with a clear message when a credential is
  * missing, and forwards every argument to `saucectl run`.
  *
- * Usage: node scripts/sauce-run.mjs [saucectl run args…]
+ * Usage: node scripts/sauce-run.mjs [--publish] [saucectl run args…]
+ *
+ * `--publish` sends the downloaded cloud report to Jira / Zephyr / Slack / Email once saucectl
+ * finishes (via scripts/integrations-publish.ts), then exits with saucectl's own status — the
+ * tests run on Sauce VMs, which never hold your integration secrets.
  */
 
 import { spawnSync } from 'node:child_process';
@@ -35,8 +39,13 @@ if (missing.length > 0) {
   process.exit(1);
 }
 
-const args = ['run', ...process.argv.slice(2)];
-if (process.env.SAUCE_REGION && !args.some((arg) => arg === '--region' || arg.startsWith('--region='))) {
+const passthrough = process.argv.slice(2);
+const publish = passthrough.includes('--publish');
+const args = ['run', ...passthrough.filter((arg) => arg !== '--publish')];
+if (
+  process.env.SAUCE_REGION &&
+  !args.some((arg) => arg === '--region' || arg.startsWith('--region='))
+) {
   args.push('--region', process.env.SAUCE_REGION);
 }
 
@@ -44,7 +53,9 @@ console.log(`saucectl ${args.join(' ')}  (user: ${process.env.SAUCE_USERNAME})`)
 /* On Windows the npm-installed saucectl is a .cmd shim, which needs a shell — and a shell splits
    unquoted arguments, so a suite name like "Demoshop Chrome - Windows 11" must be quoted. */
 const isWindows = process.platform === 'win32';
-const shellArgs = isWindows ? args.map((arg) => (/[\s"]/.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg)) : args;
+const shellArgs = isWindows
+  ? args.map((arg) => (/[\s"]/.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg))
+  : args;
 const result = spawnSync('saucectl', shellArgs, { stdio: 'inherit', shell: isWindows });
 if (result.error) {
   console.error(
@@ -52,4 +63,18 @@ if (result.error) {
   );
   process.exit(1);
 }
-process.exit(result.status ?? 1);
+const status = result.status ?? 1;
+if (publish) {
+  console.log('\nPublishing the Sauce Labs run to the configured integrations…');
+  const published = spawnSync(
+    'npx',
+    ['tsx', 'scripts/integrations-publish.ts', '--report', 'reports/sauce'],
+    {
+      stdio: 'inherit',
+      shell: isWindows,
+    },
+  );
+  if (published.status !== 0)
+    console.error('Publishing reported a problem (see above); the test status is unaffected.');
+}
+process.exit(status);

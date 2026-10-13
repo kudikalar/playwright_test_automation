@@ -40,5 +40,5 @@ export const pageTest = baseTest.extend<PageObjectFixtures>({
   },
   forgotPasswordPage: async ({ page }, use) => {
     await use(new ForgotPasswordPage(page));
-  }
+  },
 });

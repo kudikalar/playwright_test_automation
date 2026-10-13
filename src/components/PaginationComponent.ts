@@ -89,7 +89,24 @@ export class PaginationComponent extends BaseComponent {
   public async setPageSize(size: number): Promise<void> {
     await this.perform('setPageSize', `pagination.pageSize=${size}`, async () => {
       await this.pageSizeSelect.selectOption(String(size));
-      await expect(this.summary).toContainText('Page 1 of');
+      /*
+       * "Page 1 of" is usually showing *before* the change lands, so waiting for it proves nothing.
+       * Wait until the summary is self-consistent with the new size instead: page 1, and a page
+       * count that matches ceil(total / size) for whatever the total is right now (parallel tests
+       * may be adding records while this runs).
+       */
+      await expect
+        .poll(
+          async () => {
+            const state = await this.getState();
+            return (
+              state.page === 1 &&
+              state.totalPages === Math.max(1, Math.ceil(state.totalRecords / size))
+            );
+          },
+          { message: `pagination did not settle on page size ${size}` },
+        )
+        .toBe(true);
     });
   }
 

@@ -75,7 +75,6 @@ npm:
 # =============================================================================
 
 suites:
-
   - name: "Demoshop Chrome - Windows 11"
 
     platformName: "Windows 11"
@@ -91,7 +90,6 @@ suites:
       TEST_ENV: "demoshop"
 
     params:
-
       # Apply the "demoshop" project from playwright.config.ts.
       project: "demoshop"
 
@@ -114,11 +112,13 @@ artifacts:
   cleanup: true
 
   download:
-    # Download artifacts only when the suite fails.
-    # This keeps successful executions fast.
-    when: "fail"
+    # Always download: the Extent report.json/index.html are what
+    # `npm run test:sauce:publish` sends to Jira / Zephyr / Slack / Email.
+    when: "always"
 
     match:
+      - "report.json"
+      - "index.html"
       - "*.png"
       - "*.jpg"
       - "*.jpeg"
@@ -134,7 +134,6 @@ artifacts:
 # =============================================================================
 
 reporters:
-
   junit:
     enabled: true
     filename: "sauce-junit.xml"

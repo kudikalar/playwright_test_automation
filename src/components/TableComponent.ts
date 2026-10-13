@@ -192,18 +192,61 @@ export class TableComponent extends BaseComponent {
   public async sortByColumn(header: string): Promise<string> {
     return this.perform('sortByColumn', `header("${header}")`, async () => {
       const columnHeader = this.headerCells.filter({ hasText: header }).first();
+      const before = (await columnHeader.getAttribute('aria-sort')) ?? 'none';
       await columnHeader.getByRole('button').click();
-      await expect(columnHeader).toHaveAttribute('aria-sort', /ascending|descending/);
-      return (await columnHeader.getAttribute('aria-sort')) ?? 'none';
+      /*
+       * Wait for the direction to actually CHANGE. Matching /ascending|descending/ alone passes
+       * instantly on the second click, before the click has had any effect. The first direction
+       * is the app's choice (a column already sorted server-side may flip straight to descending),
+       * so only "changed, and now a real direction" is asserted.
+       */
+      let after = before;
+      await expect
+        .poll(
+          async () => {
+            after = (await columnHeader.getAttribute('aria-sort')) ?? 'none';
+            return after !== before && /^(ascending|descending)$/.test(after);
+          },
+          { message: `aria-sort on "${header}" did not change from "${before}" after the click` },
+        )
+        .toBe(true);
+      return after;
     });
   }
 
-  /** True when the column's values are sorted in the given direction (string-aware). */
+  /**
+   * True when the column's values are sorted in the given direction.
+   *
+   * The collation is the server's choice: some backends sort "Item 9" before "Item 10" (numeric
+   * aware), most sort it after (plain lexical). Either is accepted, because the question is whether
+   * the column is ordered, not which collation the backend picked.
+   */
   public async isColumnSorted(header: string, direction: 'asc' | 'desc' = 'asc'): Promise<boolean> {
     const values = await this.getColumnValues(header);
-    const sorted = [...values].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-    const expected = direction === 'asc' ? sorted : sorted.reverse();
-    return JSON.stringify(values) === JSON.stringify(expected);
+    const collations: ((a: string, b: string) => number)[] = [
+      (a, b) => a.localeCompare(b),
+      (a, b) => a.localeCompare(b, undefined, { numeric: true }),
+    ];
+    return collations.some((compare) => {
+      const sorted = [...values].sort(compare);
+      const expected = direction === 'asc' ? sorted : sorted.reverse();
+      return JSON.stringify(values) === JSON.stringify(expected);
+    });
+  }
+
+  /**
+   * Waits for the column to be sorted. Sorting is usually a click followed by an async fetch and
+   * re-render, so a single read straight after the click sees the previous order.
+   */
+  public async expectColumnSorted(
+    header: string,
+    direction: 'asc' | 'desc' = 'asc',
+  ): Promise<void> {
+    await expect
+      .poll(() => this.isColumnSorted(header, direction), {
+        message: `column "${header}" is not sorted ${direction === 'asc' ? 'ascending' : 'descending'}`,
+      })
+      .toBe(true);
   }
 
   public async isEmpty(): Promise<boolean> {

@@ -1,20 +1,21 @@
 Github & Git repo
 ------------------
+
 What is Git?
 
 - Git is source code management system where project code will be placed and secured.
-------------------------
+
+---
 
 without Git?
 
- - team of 6 members working on a project - PrakuraCodeEngine
+- team of 6 members working on a project - PrakuraCodeEngine
 
- - 3 developers 3 Automation Testers
+- 3 developers 3 Automation Testers
 
- 3 Automation testers
-    - Ramesh, Nikhil and Jahanvee - 
-    Register, Login    Forgot Password
-    (15)      (12)     10
+3 Automation testers - Ramesh, Nikhil and Jahanvee -
+Register, Login Forgot Password
+(15) (12) 10
 
      Verify register functionality with valid data  - return login credetnials , same login credentials will be used in login module to login to app.
 
@@ -37,10 +38,9 @@ communication will not be established.
 
 ---------------- 1500 test cases - 1500 test script
 
-
 with Git?
 
-we will have project in Git repo. 
+we will have project in Git repo.
 
 everyone has to sync with it.
 
@@ -55,6 +55,7 @@ jahanvee can take the latest code from remote repo.
 
 everyone is in sync - everyone has same code
 ----------------------------------------------
+
 before start working on any test script - 1st thing - you need to take latest from remote repo.
 ----------------------------------------------
 
@@ -62,53 +63,41 @@ Every commit and pushing the code mails will be sending to each one of the proje
 
 complete establishing communication properly.
 
-
 What is Git? -- Software that records changes to files and lets you work with branches and hisrory.
-What is Github?  -- a website that hosts git repositories and add pull requests , reviews, issues and autoamtions.
+What is Github? -- a website that hosts git repositories and add pull requests , reviews, issues and autoamtions.
 
 Github - credentials- company people or project team will create your account for git or invite from github.
-    credentials : rkudikala@prakura.com
-                  password!234
+credentials : rkudikala@prakura.com
+password!234
 
     You can see assigned repositories ( Project)
 
 Repository - a Project and Its git History
-Local   -- the copy on your computer
-remote  -- Another copy , usally hosted on Githubb
+Local -- the copy on your computer
+remote -- Another copy , usally hosted on Githubb
 branches ---main, master, you need to create your own branch - feature branch
-     -- register_PAY_3241
-     -- login_3242
-     -- forgotpassword_3245
+-- register_PAY_3241
+-- login_3242
+-- forgotpassword_3245
 checkout - about to add the code to new branch or create a new branch - checkout is the place where you can writ ethe code and commit the code.
 
-Commit - lets i worked on branch register_pay_3241 - coding complete for the scenario. then run the code locally and make it pass. 
-run the same code in Saucelab and check whether it is working or not. 
+Commit - lets i worked on branch register_pay_3241 - coding complete for the scenario. then run the code locally and make it pass.
+run the same code in Saucelab and check whether it is working or not.
 
-commit the code with stage change - ready to commit 
-Push  -- pushing or sending code to remote repo.
-Fetch  -- taking the updates from remote branches (master, dev, feature.)
+commit the code with stage change - ready to commit
+Push -- pushing or sending code to remote repo.
+Fetch -- taking the updates from remote branches (master, dev, feature.)
 pull - getting the changes into local machine
 
-stash  --- stash is nothing keep your changed in the cloud while swithcing another branch. 
-
+stash --- stash is nothing keep your changed in the cloud while swithcing another branch.
 
 ------------- fetch me a glass of water. ------
 
-he brought the water but glass is in his hand 
+he brought the water but glass is in his hand
 
 once it is handed over to you, then you received the water - Pull
 
-
-
-
-
-
-What ever you work on (test script develiopment. web development. other )
-    - what code you commited
-    - when did you add it - date and time
-    - who deleted
-    - who modified
-    - who created.
+What ever you work on (test script develiopment. web development. other ) - what code you commited - when did you add it - date and time - who deleted - who modified - who created.
 
 branches
 
@@ -119,10 +108,6 @@ any other types of repos apart from github
 - GitHub
 - GitLab
 
-
 Login , Register
 
 Add product
-
-
-

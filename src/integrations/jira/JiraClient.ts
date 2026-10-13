@@ -175,6 +175,20 @@ export interface JiraUser {
   readonly displayName: string;
 }
 
+export interface JiraIssueSummary {
+  readonly id: string;
+  readonly key: string;
+  readonly summary: string;
+  readonly status: string;
+  readonly labels: readonly string[];
+}
+
+export interface JiraSearchResult {
+  readonly issues: readonly JiraIssueSummary[];
+  /** True when Jira has a further page this client did not fetch. */
+  readonly hasMore: boolean;
+}
+
 export interface JiraClientOptions {
   /** Tenant origin, e.g. `https://your-domain.atlassian.net`. */
   readonly baseUrl: string;
@@ -332,6 +346,134 @@ export class JiraClient {
     });
   }
 
+  /**
+   * JQL search on the enhanced endpoint. `/rest/api/3/search` was removed from Jira Cloud in 2025;
+   * `/search/jql` is its replacement and pages with `nextPageToken` instead of `startAt`. One page
+   * is enough for every caller here — they ask narrow questions ("the open bug with this label").
+   */
+  public async searchIssues(
+    jql: string,
+    fields: readonly string[] = ['summary', 'status', 'labels'],
+    maxResults = 50,
+    timeoutMs?: number,
+  ): Promise<JiraSearchResult> {
+    const parsed = await this.send<Record<string, unknown>>('POST', '/search/jql', {
+      body: { jql, fields, maxResults: Math.max(1, Math.min(100, maxResults)) },
+      timeoutMs,
+    });
+    const issues = Array.isArray(parsed.issues) ? parsed.issues : [];
+    return {
+      issues: issues
+        .filter(isRecord)
+        .map((issue) => {
+          const issueFields = isRecord(issue.fields) ? issue.fields : {};
+          const status = isRecord(issueFields.status) ? issueFields.status : {};
+          return {
+            id: typeof issue.id === 'string' ? issue.id : '',
+            key: typeof issue.key === 'string' ? issue.key : '',
+            summary: typeof issueFields.summary === 'string' ? issueFields.summary : '',
+            status: typeof status.name === 'string' ? status.name : '',
+            labels: Array.isArray(issueFields.labels)
+              ? issueFields.labels.filter((label): label is string => typeof label === 'string')
+              : [],
+          };
+        })
+        .filter((issue) => issue.key !== ''),
+      hasMore: typeof parsed.nextPageToken === 'string' && parsed.nextPageToken !== '',
+    };
+  }
+
+  /**
+   * Uploads one file to an issue. Multipart, so it bypasses the JSON `send` path; Jira also
+   * insists on `X-Atlassian-Token: no-check` here or it answers 403 (XSRF check failed).
+   */
+  public async addAttachment(
+    issueKey: string,
+    fileName: string,
+    content: Uint8Array,
+    contentType: string,
+    timeoutMs?: number,
+  ): Promise<void> {
+    const deadline = Math.max(
+      MIN_TIMEOUT_MS,
+      Math.min(this.timeoutMs, timeoutMs ?? this.timeoutMs),
+    );
+    const path = `/issue/${encodeURIComponent(issueKey)}/attachments`;
+    const form = new FormData();
+    form.append('file', new Blob([new Uint8Array(content)], { type: contentType }), fileName);
+    let response: Response;
+    try {
+      response = await fetch(`${this.apiRoot}${path}`, {
+        method: 'POST',
+        headers: {
+          Authorization: this.authHeader,
+          Accept: 'application/json',
+          'X-Atlassian-Token': 'no-check',
+        },
+        body: form,
+        signal: AbortSignal.timeout(deadline),
+      });
+    } catch (error) {
+      const reason =
+        error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')
+          ? `no response within ${deadline}ms`
+          : error instanceof Error
+            ? error.message
+            : 'unknown transport failure';
+      throw new JiraApiError(`POST ${path} did not complete: ${reason}`, 0);
+    }
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      throw new JiraApiError(
+        [
+          `HTTP ${response.status} from POST ${path}`,
+          STATUS_HINTS[response.status],
+          describeErrorBody(body),
+        ]
+          .filter((part) => part !== undefined && part !== '')
+          .join(' — '),
+        response.status,
+      );
+    }
+    await response.arrayBuffer().catch(() => undefined);
+  }
+
+  /**
+   * Adds and/or removes labels. Uses the `update` verb form so labels set by humans survive —
+   * a `fields.labels` set would replace them all. Jira answers 204 with no body.
+   */
+  public async updateLabels(
+    issueKey: string,
+    add: readonly string[],
+    remove: readonly string[] = [],
+    timeoutMs?: number,
+  ): Promise<void> {
+    const path = `/issue/${encodeURIComponent(issueKey)}`;
+    const response = await this.exchange('PUT', path, {
+      body: {
+        update: {
+          labels: [
+            ...add.map((label) => ({ add: label })),
+            ...remove.map((label) => ({ remove: label })),
+          ],
+        },
+      },
+      timeoutMs,
+    });
+    if (!response.ok) {
+      throw new JiraApiError(
+        [
+          `HTTP ${response.status} from PUT ${path}`,
+          STATUS_HINTS[response.status],
+          describeErrorBody(response.body),
+        ]
+          .filter((part) => part !== undefined && part !== '')
+          .join(' — '),
+        response.status,
+      );
+    }
+  }
+
   /* ----------------------------------------------------------- internals -- */
 
   private async send<T>(
@@ -385,7 +527,7 @@ export class JiraClient {
    * budget may shorten that deadline; nothing may extend it.
    */
   private async exchange(
-    method: 'GET' | 'POST',
+    method: 'GET' | 'POST' | 'PUT',
     path: string,
     options: JiraRequestOptions,
   ): Promise<JiraRawResponse> {

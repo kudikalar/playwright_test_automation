@@ -49,3 +49,7 @@ Thumbs.db
 # ---- typescript ----
 *.tsbuildinfo
 dist/
+
+# ---- merged CI blob reports ----
+blob-report/
+all-blob-reports/

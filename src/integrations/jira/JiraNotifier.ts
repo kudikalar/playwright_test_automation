@@ -24,6 +24,7 @@ import type {
 } from '../IntegrationTypes';
 import { issueKeysFor } from '../IntegrationTypes';
 import type { ExtentStatus, ExtentTest } from '../../reporting/ExtentTypes';
+import { triagePerTest, type TriageOutcome } from './JiraBugTriage';
 import { adfDocument, JiraApiError, JiraClient } from './JiraClient';
 
 /** Without all four, no call can be made; the token alone is not enough to address an issue. */
@@ -155,6 +156,11 @@ interface JiraSettings {
   readonly issueType: string;
   readonly cloudId?: string;
   readonly createIssueOnFailure: boolean;
+  /** `per-test`: one de-duplicated Bug per failing test. `run`: one Bug per run (legacy). */
+  readonly bugMode: 'per-test' | 'run';
+  readonly attachScreenshots: boolean;
+  readonly noteRecoveries: boolean;
+  readonly extraLabels: readonly string[];
   readonly maxCalls: number;
   /** Project prefixes this reporter is allowed to write to; empty means "any key it finds". */
   readonly issueKeyPrefixes: readonly string[];
@@ -241,6 +247,14 @@ export class JiraNotifier implements Integration {
       issueType: issueType === '' ? DEFAULT_ISSUE_TYPE : issueType,
       ...(cloudId === '' ? {} : { cloudId }),
       createIssueOnFailure: truthy(this.env.JIRA_CREATE_ISSUE_ON_FAILURE),
+      bugMode: read('JIRA_BUG_MODE').toLowerCase() === 'run' ? 'run' : 'per-test',
+      attachScreenshots:
+        read('JIRA_ATTACH_SCREENSHOTS') === '' ? true : truthy(this.env.JIRA_ATTACH_SCREENSHOTS),
+      noteRecoveries: truthy(this.env.JIRA_NOTE_RECOVERIES),
+      extraLabels: read('JIRA_LABELS')
+        .split(',')
+        .map((label) => label.trim().replace(/\s+/g, '-'))
+        .filter((label) => label !== ''),
       maxCalls: Math.min(
         MAX_MAX_CALLS,
         Math.max(1, int(this.env.JIRA_MAX_COMMENTS, DEFAULT_MAX_CALLS)),
@@ -303,7 +317,9 @@ async function report(settings: JiraSettings, context: IntegrationContext): Prom
   const remainingMs = (): number => deadline - Date.now();
 
   const failures = context.model.tests.filter((test) => FAILING_STATUSES.has(test.status));
-  if (failures.length === 0) {
+  const perTest = settings.bugMode === 'per-test';
+  const wantsRecoveries = perTest && settings.noteRecoveries;
+  if (failures.length === 0 && !wantsRecoveries) {
     return {
       status: 'skipped',
       detail: 'No failing tests in this run — nothing to report to Jira.',
@@ -378,8 +394,33 @@ async function report(settings: JiraSettings, context: IntegrationContext): Prom
 
   let createdKey: string | undefined;
   let bugSkipped = false;
+  let triage: TriageOutcome | undefined;
 
-  if (unlinked.length > 0 && settings.createIssueOnFailure) {
+  if (perTest && ((unlinked.length > 0 && settings.createIssueOnFailure) || wantsRecoveries)) {
+    triage = await triagePerTest(
+      client,
+      {
+        projectKey: settings.projectKey,
+        issueType: settings.issueType,
+        extraLabels: settings.extraLabels,
+        createIssues: settings.createIssueOnFailure,
+        attachScreenshots: settings.attachScreenshots,
+        noteRecoveries: settings.noteRecoveries,
+      },
+      unlinked,
+      context,
+      {
+        take: () => {
+          const stop = stopReason();
+          if (stop === undefined) budget -= 1;
+          return stop;
+        },
+        remainingMs,
+      },
+    );
+    truncation ??= triage.truncation;
+    callFailures.push(...triage.failures);
+  } else if (unlinked.length > 0 && settings.createIssueOnFailure) {
     const stop = stopReason();
     if (stop !== undefined) {
       truncation ??= stop;
@@ -424,6 +465,7 @@ async function report(settings: JiraSettings, context: IntegrationContext): Prom
     bugSkipped,
     truncation,
     unlinkedCount: unlinked.length,
+    triage,
   });
 }
 
@@ -437,6 +479,7 @@ interface OutcomeInput {
   readonly bugSkipped: boolean;
   readonly truncation: TruncationCause;
   readonly unlinkedCount: number;
+  readonly triage: TriageOutcome | undefined;
 }
 
 /** Renders a list into the one-line detail, saying how much of it is not shown. */
@@ -457,6 +500,25 @@ function summarise(input: OutcomeInput): JiraOutcome {
   }
   if (input.createdKey !== undefined) {
     parts.push(`created ${input.createdKey} for ${input.unlinkedCount} unlinked failure(s)`);
+  }
+  const triage = input.triage;
+  if (triage !== undefined) {
+    if (triage.created.length > 0) {
+      parts.push(`filed ${triage.created.length} new bug(s): ${listed(triage.created, ', ')}`);
+    }
+    if (triage.updated.length > 0) {
+      parts.push(
+        `${triage.updated.length} known bug(s) still failing, commented: ${listed(triage.updated, ', ')}`,
+      );
+    }
+    if (triage.recovered.length > 0) {
+      parts.push(
+        `${triage.recovered.length} bug(s) now passing, noted: ${listed(triage.recovered, ', ')}`,
+      );
+    }
+    if (triage.skippedByBudget > 0) {
+      parts.push(`${triage.skippedByBudget} failing test(s) not triaged (budget)`);
+    }
   }
   if (input.unlinkedCount > 0 && !input.settings.createIssueOnFailure) {
     parts.push(
@@ -482,11 +544,17 @@ function summarise(input: OutcomeInput): JiraOutcome {
     );
   }
 
-  const wrote = input.commented.length + (input.createdKey === undefined ? 0 : 1);
+  const wrote =
+    input.commented.length +
+    (input.createdKey === undefined ? 0 : 1) +
+    (triage === undefined
+      ? 0
+      : triage.created.length + triage.updated.length + triage.recovered.length);
   const status: IntegrationStatus =
     wrote > 0 ? 'published' : input.callFailures.length > 0 ? 'failed' : 'skipped';
 
-  const linkKey = input.createdKey ?? input.commented[0];
+  const linkKey =
+    input.createdKey ?? triage?.created[0] ?? triage?.updated[0] ?? input.commented[0];
   const detail = parts.length > 0 ? `Jira ${parts.join('; ')}.` : 'Nothing to report to Jira.';
 
   return {

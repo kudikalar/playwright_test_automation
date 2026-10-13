@@ -440,8 +440,9 @@ export const SAUCECTL_CONFIG: SaucectlConfig = {
   suites: SAUCECTL_SUITES,
   artifacts: {
     download: {
-      when: 'fail',
-      match: ['*.mp4', '*.log', '*.xml', '*.json'],
+      /* Always: report.json / index.html feed `npm run test:sauce:publish`. */
+      when: 'always',
+      match: ['*.mp4', '*.log', '*.xml', '*.json', '*.png', 'index.html'],
       directory: './reports/sauce/',
     },
   },
