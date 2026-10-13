@@ -7,11 +7,14 @@ import type { UserRole } from './Environment';
 export interface UserReference {
   readonly role: UserRole;
   readonly description: string;
+  readonly email:string;
+  readonly password:string;
 }
 
 export interface InvalidLoginCase {
   readonly scenario: string;
   readonly username: string;
+  readonly email:string;
   readonly password: string;
   readonly expectedError: string;
   readonly tags?: readonly string[];

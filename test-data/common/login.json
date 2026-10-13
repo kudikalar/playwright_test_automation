@@ -1,8 +1,10 @@
 {
   "validUsers": [
-    { "role": "ADMIN", "description": "Workforce administrator with full access" },
-    { "role": "MANAGER", "description": "Department manager who may delete records" },
-    { "role": "EMPLOYEE", "description": "Standard employee with read access" }
+    {
+      "scenario": "Valid Customer Login",
+      "email": "customer@vhc.test",
+      "password": "VisionDemo#2026"
+    }
   ],
   "invalidScenarios": [
     {

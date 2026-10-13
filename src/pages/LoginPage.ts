@@ -33,7 +33,7 @@ export class LoginPage extends BasePage {
     this.heading = page.getByRole('heading', { name: 'Sign in' });
     this.rootIndicator = this.heading;
     this.emailInput = page.getByLabel('Email');
-    this.passwordInput = page.getByLabel('Password');
+    this.passwordInput = page.getByPlaceholder('Enter your password');
     this.rememberMeCheckbox = page.getByLabel('Remember me on this device');
     this.signInButton = page.getByRole('button', { name: 'Sign in' });
     /* Scoped to the form region: the toast region also publishes role="alert". */
@@ -98,5 +98,12 @@ export class LoginPage extends BasePage {
   /** True when a session token is present in browser storage. */
   public async hasSessionToken(): Promise<boolean> {
     return (await this.getLocalStorageItem('pk.auth.token')) !== null;
+  }
+
+  public async attemptValidLogin(username: string, password: string): Promise<void> {
+    await this.submitCredentials(username, password);
+    await expect(this.page).toHaveURL(`**${this.environment.ui.dashboardPath}`, {
+      timeout: this.environment.timeouts.navigation,
+    });
   }
 }

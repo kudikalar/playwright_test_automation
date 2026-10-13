@@ -43,4 +43,24 @@ test.describe('Authentication @login', () => {
       expect(await loginPage.hasSessionToken()).toBe(false);
     });
   });
+
+test(
+  `Verify User Login with valid username and password ${TAGS.smoke} ${TAGS.positive} @VHC-TC14`,
+  async ({ loginPage, testData }) => {
+    const data = testData.get('login');
+    const [user] = data.validUsers;
+
+    if (!user) {
+      throw new Error('login.json must declare at least one valid user');
+    }
+
+    await loginPage.attemptValidLogin(user.email, user.password);
+
+    await test.step('The user is redirected to the dashboard with a session', async () => {
+      expect(await loginPage.hasSessionToken()).toBe(true);
+      // expect(dashboardPage.isloaded).toBe(true);
+    }
+  }
+  
+);
 });

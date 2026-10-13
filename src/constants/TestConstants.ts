@@ -19,6 +19,7 @@ export const TAGS = {
   flakyWatch: '@flaky-watch',
   functional: '@functional',
   forgotPassword: '@forgotpassword',
+  positive: '@positive'
 } as const;
 
 export type Tag = (typeof TAGS)[keyof typeof TAGS];
