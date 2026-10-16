@@ -59,8 +59,7 @@ test(
     await test.step('The user is redirected to the dashboard with a session', async () => {
       expect(await loginPage.hasSessionToken()).toBe(true);
       // expect(dashboardPage.isloaded).toBe(true);
-    }
+    });
   }
-  
 );
 });

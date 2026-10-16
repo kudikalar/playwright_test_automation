@@ -1,0 +1,4 @@
+URL: https://stage-vhc-healthcare.vercel.app/dashboard
+localStorage: []
+sessionStorage: []
+cookies: [ 'vhc_sid (httpOnly=true)', 'vhc_csrf (httpOnly=false)' ]

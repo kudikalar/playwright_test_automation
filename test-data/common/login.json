@@ -11,14 +11,14 @@
       "scenario": "Unknown email address",
       "username": "not.a.user@automation.test",
       "password": "Whatever@12345",
-      "expectedError": "Invalid credentials",
+      "expectedError": "Email or password is incorrect",
       "tags": ["@negative", "@regression"]
     },
     {
       "scenario": "Correct email with wrong password",
       "username": "admin@prakura.io",
       "password": "WrongPassword@123",
-      "expectedError": "Invalid credentials",
+      "expectedError": "Email or password is incorrect",
       "tags": ["@negative", "@critical"]
     },
     {
@@ -39,14 +39,14 @@
       "scenario": "Empty email",
       "username": "test.com",
       "password": "sdfkjh",
-      "expectedError": "Invalid credentials",
+      "expectedError": "Email or password is incorrect",
       "tags": ["@negative"]
     }
   ],
   "ui": {
     "pageTitle": "Sign in",
     "submitLabel": "Sign in",
-    "invalidCredentialsMessage": "Invalid credentials",
+    "invalidCredentialsMessage": "Email or password is incorrect",
     "missingFieldsMessage": "Email and password are required"
   }
 }

@@ -1,0 +1,80 @@
+=== Sat Oct 17 02:22:19 IST 2026 ===
+node: v24.18.0   npm: 11.16.0
+target:     "baseUrl": "https://stage-vhc-healthcare.vercel.app",
+--- npm ci ---
+npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+added 138 packages in 5s
+npm warn allow-scripts 3 packages have install scripts not yet covered by allowScripts:
+npm warn allow-scripts   esbuild@0.28.2 (postinstall: node install.js)
+npm warn allow-scripts   fsevents@2.3.2 (install: (install scripts present))
+npm warn allow-scripts   fsevents@2.3.3 (install: (install scripts present))
+npm warn allow-scripts
+npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+--- ensure chromium ---
+|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■| 100% of 98.7 MiB
+Chrome Headless Shell 149.0.7827.55 (playwright chromium-headless-shell v1228) downloaded to /Users/admin/Library/Caches/ms-playwright/chromium_headless_shell-1228
+--- TEST 1: demoshop register smoke (project=demoshop) ---
+2026-10-16T20:53:00.782Z | INFO  | global-setup | run starting {"environment":"demoshop","displayName":"Vision Health Care (public demo)","uiBaseUrl":"https://stage-vhc-healthcare.vercel.app","apiBaseUrl":"https://stage-vhc-healthcare.vercel.app/api","workers":2,"projects":["demoshop"],"ci":false}
+2026-10-16T20:53:00.787Z | DEBUG | JsonReader | dataset resolved {"dataset":"login","common":true,"environmentOverride":false,"environment":"demoshop"}
+2026-10-16T20:53:00.787Z | DEBUG | JsonReader | dataset resolved {"dataset":"employees","common":true,"environmentOverride":false,"environment":"demoshop"}
+2026-10-16T20:53:00.788Z | DEBUG | JsonReader | dataset resolved {"dataset":"api","common":true,"environmentOverride":false,"environment":"demoshop"}
+2026-10-16T20:53:00.788Z | DEBUG | JsonReader | dataset resolved {"dataset":"register","common":false,"environmentOverride":true,"environment":"demoshop"}
+2026-10-16T20:53:00.789Z | INFO  | global-setup | health probe skipped — this environment declares no health endpoint {"baseUrl":"https://stage-vhc-healthcare.vercel.app/api"}
+2026-10-16T20:53:00.789Z | INFO  | global-setup | no roles configured for this environment — skipping session state creation {"environment":"demoshop"}
+2026-10-16T20:53:00.790Z | INFO  | global-setup | global setup complete
+
+Running 1 test using 1 worker
+
+2026-10-16T20:53:01.826Z | DEBUG | JsonReader | dataset resolved {"dataset":"register","common":false,"environmentOverride":true,"environment":"demoshop"}
+2026-10-16T20:53:15.894Z | DEBUG | RegisterPage | navigate -> https://stage-vhc-healthcare.vercel.app/register
+2026-10-16T20:53:16.514Z | DEBUG | RegisterPage | waitUntilLoaded -> getByRole('heading', { name: 'Create your account', level: 1 })
+2026-10-16T20:53:16.861Z | DEBUG | RegisterPage | fill -> First name = "Ramesh"
+2026-10-16T20:53:16.899Z | DEBUG | RegisterPage | fill -> Last name = "Kudikala"
+2026-10-16T20:53:16.922Z | DEBUG | RegisterPage | fill -> Email address = "pwauto.register.0mvbg2u9m8759@example.com"
+2026-10-16T20:53:16.958Z | DEBUG | RegisterPage | fill -> Mobile number = "6442265684"
+2026-10-16T20:53:16.982Z | DEBUG | RegisterPage | fill -> Password = ***REDACTED***
+2026-10-16T20:53:17.052Z | DEBUG | RegisterPage | fill -> Confirm password = ***REDACTED***
+2026-10-16T20:53:17.066Z | DEBUG | RegisterPage | setChecked -> getByRole('checkbox', { name: /I accept the terms of use/ }) = true
+2026-10-16T20:53:17.203Z | DEBUG | RegisterPage | setChecked -> getByRole('checkbox', { name: /product news and offers/ }) = false
+2026-10-16T20:53:17.217Z | DEBUG | RegisterPage | click -> Create account button
+  ✓  1 [demoshop] › tests/demoshop/register.smoke.spec.ts:19:3 › Registration @register › Register to website with valid Data @functional @ui (8.6s)
+2026-10-16T20:53:22.103Z | INFO  | AuthenticationManager | session states cleared {"roles":["ADMIN","MANAGER","EMPLOYEE","STUDENT","MENTOR"]}
+2026-10-16T20:53:22.103Z | INFO  | global-teardown | run finished {"environment":"demoshop","runId":"2026-10-16T20-53-00-501Z","reports":{"playwright":"/Users/admin/Documents/playwright_test_automation_latest/reports/playwright","extent":"/Users/admin/Documents/playwright_test_automation_latest/reports/extent","logs":"/Users/admin/Documents/playwright_test_automation_latest/logs"}}
+
+  1 passed (21.6s)
+EXIT_CODE_1=0
+--- TEST 2: login + forgot-password smoke (project=chromium, TEST_ENV=demoshop) ---
+2026-10-16T20:53:24.803Z | INFO  | global-setup | run starting {"environment":"demoshop","displayName":"Vision Health Care (public demo)","uiBaseUrl":"https://stage-vhc-healthcare.vercel.app","apiBaseUrl":"https://stage-vhc-healthcare.vercel.app/api","workers":2,"projects":["chromium"],"ci":false}
+2026-10-16T20:53:24.806Z | DEBUG | JsonReader | dataset resolved {"dataset":"login","common":true,"environmentOverride":false,"environment":"demoshop"}
+2026-10-16T20:53:24.806Z | DEBUG | JsonReader | dataset resolved {"dataset":"employees","common":true,"environmentOverride":false,"environment":"demoshop"}
+2026-10-16T20:53:24.806Z | DEBUG | JsonReader | dataset resolved {"dataset":"api","common":true,"environmentOverride":false,"environment":"demoshop"}
+2026-10-16T20:53:24.807Z | DEBUG | JsonReader | dataset resolved {"dataset":"register","common":false,"environmentOverride":true,"environment":"demoshop"}
+2026-10-16T20:53:24.807Z | INFO  | global-setup | health probe skipped — this environment declares no health endpoint {"baseUrl":"https://stage-vhc-healthcare.vercel.app/api"}
+2026-10-16T20:53:24.808Z | INFO  | global-setup | no roles configured for this environment — skipping session state creation {"environment":"demoshop"}
+2026-10-16T20:53:24.808Z | INFO  | global-setup | global setup complete
+SyntaxError: /Users/admin/Documents/playwright_test_automation_latest/tests/ui/smoke/login.smoke.spec.ts: Unexpected token, expected "," (63:2)
+
+  61 |       // expect(dashboardPage.isloaded).toBe(true);
+  62 |     }
+> 63 |   }
+     |   ^
+  64 |   
+  65 | );
+  66 | });
+
+   at ui/smoke/login.smoke.spec.ts:63
+
+  61 |       // expect(dashboardPage.isloaded).toBe(true);
+  62 |     }
+> 63 |   }
+     |  ^
+  64 |   
+  65 | );
+  66 | });
+    at eval (<anonymous>:1:1)
+2026-10-16T20:53:25.000Z | INFO  | AuthenticationManager | session states cleared {"roles":["ADMIN","MANAGER","EMPLOYEE","STUDENT","MENTOR"]}
+2026-10-16T20:53:25.000Z | INFO  | global-teardown | run finished {"environment":"demoshop","runId":"2026-10-16T20-53-24-746Z","reports":{"playwright":"/Users/admin/Documents/playwright_test_automation_latest/reports/playwright","extent":"/Users/admin/Documents/playwright_test_automation_latest/reports/extent","logs":"/Users/admin/Documents/playwright_test_automation_latest/logs"}}
+
+EXIT_CODE_2=1
+=== DONE Sat Oct 17 02:23:25 IST 2026 ===

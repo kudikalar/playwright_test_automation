@@ -4,13 +4,13 @@
   "allowDestructiveTests": false,
   "allowInsecureDefaults": false,
   "ui": {
-    "baseUrl": "https://vhc-healthcarefe.vercel.app",
+    "baseUrl": "https://stage-vhc-healthcare.vercel.app",
     "loginPath": "/login",
-    "dashboardPath": "/",
+    "dashboardPath": "/dashboard",
     "forgotPasswordPath": "/forgot-password"
   },
   "api": {
-    "baseUrl": "https://vhc-healthcarefe.vercel.app/api",
+    "baseUrl": "https://stage-vhc-healthcare.vercel.app/api",
     "healthPath": null
   },
   "timeouts": {

@@ -1,0 +1,52 @@
+=== Sat Oct 17 02:30:55 IST 2026 ===
+target:     "baseUrl": "https://stage-vhc-healthcare.vercel.app",
+2026-10-16T21:00:58.179Z | INFO  | global-setup | run starting {"environment":"demoshop","displayName":"Vision Health Care (public demo)","uiBaseUrl":"https://stage-vhc-healthcare.vercel.app","apiBaseUrl":"https://stage-vhc-healthcare.vercel.app/api","workers":2,"projects":["chromium"],"ci":false}
+2026-10-16T21:00:58.182Z | DEBUG | JsonReader | dataset resolved {"dataset":"login","common":true,"environmentOverride":false,"environment":"demoshop"}
+2026-10-16T21:00:58.182Z | DEBUG | JsonReader | dataset resolved {"dataset":"employees","common":true,"environmentOverride":false,"environment":"demoshop"}
+2026-10-16T21:00:58.183Z | DEBUG | JsonReader | dataset resolved {"dataset":"api","common":true,"environmentOverride":false,"environment":"demoshop"}
+2026-10-16T21:00:58.183Z | DEBUG | JsonReader | dataset resolved {"dataset":"register","common":false,"environmentOverride":true,"environment":"demoshop"}
+2026-10-16T21:00:58.184Z | INFO  | global-setup | health probe skipped — this environment declares no health endpoint {"baseUrl":"https://stage-vhc-healthcare.vercel.app/api"}
+2026-10-16T21:00:58.185Z | INFO  | global-setup | no roles configured for this environment — skipping session state creation {"environment":"demoshop"}
+2026-10-16T21:00:58.186Z | INFO  | global-setup | global setup complete
+
+Running 5 tests using 2 workers
+
+2026-10-16T21:01:01.623Z | DEBUG | ForgotPasswordPage | navigate -> https://stage-vhc-healthcare.vercel.app/forgot-password
+2026-10-16T21:01:01.627Z | DEBUG | ForgotPasswordPage | navigate -> https://stage-vhc-healthcare.vercel.app/forgot-password
+2026-10-16T21:01:02.783Z | DEBUG | ForgotPasswordPage | waitUntilLoaded -> getByRole('heading', { name: 'Reset your password', level: 1 })
+2026-10-16T21:01:03.014Z | DEBUG | ForgotPasswordPage | waitUntilLoaded -> getByRole('heading', { name: 'Reset your password', level: 1 })
+2026-10-16T21:01:03.588Z | DEBUG | JsonReader | dataset resolved {"dataset":"forgotPassword","common":false,"environmentOverride":true,"environment":"demoshop"}
+2026-10-16T21:01:03.607Z | DEBUG | ForgotPasswordPage | fill -> Email address = "testing@.com"
+2026-10-16T21:01:03.679Z | DEBUG | JsonReader | dataset resolved {"dataset":"forgotPassword","common":false,"environmentOverride":true,"environment":"demoshop"}
+2026-10-16T21:01:03.685Z | DEBUG | ForgotPasswordPage | click -> Send reset link button
+2026-10-16T21:01:03.805Z | DEBUG | ForgotPasswordPage | fill -> Email address = "rkudikala83@gmail.com"
+2026-10-16T21:01:03.918Z | DEBUG | ForgotPasswordPage | click -> Send reset link button
+2026-10-16T21:01:04.206Z | DEBUG | ForgotPasswordPage | fill -> Email address = (empty)
+2026-10-16T21:01:04.307Z | DEBUG | ForgotPasswordPage | click -> Send reset link button
+  ✓  2 [chromium] › tests/ui/smoke/forgotpassword.smoke.spec.ts:40:3 › Forgot Password @forgotpassword › Forgot Password with invalid Email Address @forgotpassword @negative (5.0s)
+  ✓  1 [chromium] › tests/ui/smoke/forgotpassword.smoke.spec.ts:18:3 › Forgot Password @forgotpassword › Forgot Password with valid Email Address @forgotpassword (5.0s)
+2026-10-16T21:01:06.078Z | DEBUG | LoginPage | navigate -> https://stage-vhc-healthcare.vercel.app/login
+2026-10-16T21:01:06.293Z | DEBUG | LoginPage | navigate -> https://stage-vhc-healthcare.vercel.app/login
+2026-10-16T21:01:06.615Z | DEBUG | LoginPage | waitUntilLoaded -> getByRole('heading', { name: 'Sign in' })
+2026-10-16T21:01:07.053Z | DEBUG | JsonReader | dataset resolved {"dataset":"login","common":true,"environmentOverride":false,"environment":"demoshop"}
+2026-10-16T21:01:07.069Z | DEBUG | LoginPage | waitUntilLoaded -> getByRole('heading', { name: 'Sign in' })
+2026-10-16T21:01:07.470Z | DEBUG | JsonReader | dataset resolved {"dataset":"login","common":true,"environmentOverride":false,"environment":"demoshop"}
+2026-10-16T21:01:07.473Z | DEBUG | LoginPage | fill -> getByLabel('Email') = "not.a.user@automation.test"
+2026-10-16T21:01:07.535Z | DEBUG | LoginPage | fill -> getByPlaceholder('Enter your password') = ***REDACTED***
+2026-10-16T21:01:07.663Z | DEBUG | LoginPage | click -> getByRole('button', { name: 'Sign in' })
+  ✓  3 [chromium] › tests/ui/smoke/login.smoke.spec.ts:16:3 › Authentication @login › Sign-in page renders its controls @smoke @ui (2.5s)
+2026-10-16T21:01:08.154Z | DEBUG | LoginPage | getText -> getByRole('alert').filter({ hasText: /incorrect|invalid|required/i })
+2026-10-16T21:01:08.231Z | DEBUG | LoginPage | getLocalStorageItem -> pk.auth.token
+2026-10-16T21:01:08.548Z | DEBUG | LoginPage | navigate -> https://stage-vhc-healthcare.vercel.app/login
+  ✓  4 [chromium] › tests/ui/smoke/login.smoke.spec.ts:30:3 › Authentication @login › Invalid credentials are rejected @smoke @negative (3.1s)
+2026-10-16T21:01:08.965Z | DEBUG | LoginPage | waitUntilLoaded -> getByRole('heading', { name: 'Sign in' })
+2026-10-16T21:01:09.348Z | DEBUG | LoginPage | fill -> getByLabel('Email') = "customer@vhc.test"
+2026-10-16T21:01:09.427Z | DEBUG | LoginPage | fill -> getByPlaceholder('Enter your password') = ***REDACTED***
+2026-10-16T21:01:09.513Z | DEBUG | LoginPage | click -> getByRole('button', { name: 'Sign in' })
+  ✓  5 [chromium] › tests/ui/smoke/login.smoke.spec.ts:47:1 › Authentication @login › Verify User Login with valid username and password @smoke @positive @VHC-TC14 (3.0s)
+2026-10-16T21:01:11.457Z | INFO  | AuthenticationManager | session states cleared {"roles":["ADMIN","MANAGER","EMPLOYEE","STUDENT","MENTOR"]}
+2026-10-16T21:01:11.458Z | INFO  | global-teardown | run finished {"environment":"demoshop","runId":"2026-10-16T21-00-57-943Z","reports":{"playwright":"/Users/admin/Documents/playwright_test_automation_latest/reports/playwright","extent":"/Users/admin/Documents/playwright_test_automation_latest/reports/extent","logs":"/Users/admin/Documents/playwright_test_automation_latest/logs"}}
+
+  5 passed (13.5s)
+EXIT_CODE=0
+=== DONE Sat Oct 17 02:31:11 IST 2026 ===

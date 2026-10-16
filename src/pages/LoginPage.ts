@@ -36,8 +36,9 @@ export class LoginPage extends BasePage {
     this.passwordInput = page.getByPlaceholder('Enter your password');
     this.rememberMeCheckbox = page.getByLabel('Remember me on this device');
     this.signInButton = page.getByRole('button', { name: 'Sign in' });
-    /* Scoped to the form region: the toast region also publishes role="alert". */
-    this.errorMessage = page.getByRole('main').getByRole('alert');
+    /* The page also publishes other role="alert" regions (toasts, the staging-storage banner),
+       so match only the sign-in validation message by its wording. */
+    this.errorMessage = page.getByRole('alert').filter({ hasText: /incorrect|invalid|required/i });
     this.forgotPasswordLink = page.getByRole('link', { name: 'Forgot password?' });
   }
 
@@ -58,7 +59,7 @@ export class LoginPage extends BasePage {
   /** Signs in and waits for the dashboard — the happy path used by most UI journeys. */
   public async login(username: string, password: string, rememberMe = false): Promise<void> {
     await this.submitCredentials(username, password, rememberMe);
-    await this.page.waitForURL(`**${this.environment.ui.dashboardPath}`, {
+    await this.page.waitForURL(this.dashboardUrlPattern(), {
       timeout: this.environment.timeouts.navigation,
       waitUntil: 'domcontentloaded',
     });
@@ -95,15 +96,31 @@ export class LoginPage extends BasePage {
     await expect(this.errorMessage).toBeHidden();
   }
 
-  /** True when a session token is present in browser storage. */
+  /**
+   * True when the browser holds a signed-in session.
+   * The Vision Health Care build keeps its session in an httpOnly `vhc_sid` cookie; older builds
+   * stored a `pk.auth.token` entry in localStorage, so both are accepted.
+   */
   public async hasSessionToken(): Promise<boolean> {
+    const cookies = await this.page.context().cookies();
+    if (cookies.some((cookie) => cookie.name === 'vhc_sid' && cookie.value.length > 0)) return true;
     return (await this.getLocalStorageItem('pk.auth.token')) !== null;
   }
 
   public async attemptValidLogin(username: string, password: string): Promise<void> {
     await this.submitCredentials(username, password);
-    await expect(this.page).toHaveURL(`**${this.environment.ui.dashboardPath}`, {
+    await expect(this.page).toHaveURL(this.dashboardUrlPattern(), {
       timeout: this.environment.timeouts.navigation,
     });
+  }
+
+  /**
+   * Matches the post-login landing URL for the active environment.
+   * A RegExp is used on purpose: Playwright resolves string patterns against `baseURL`, which turns
+   * a glob like `** /dashboard` into `https://host/** /dashboard` and never matches.
+   */
+  private dashboardUrlPattern(): RegExp {
+    const path = this.environment.ui.dashboardPath.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
+    return new RegExp(`^https?://[^/]+${path}/?(?:[?#].*)?$`);
   }
 }
